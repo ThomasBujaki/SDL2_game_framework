@@ -45,9 +45,7 @@ int process_arguments(int ac, char **av, struct argument_parameters *arguments) 
 
 void calculate_framerate(struct frame_time_info *frames_data) {
 	frames_data->num_updates++;
-	frames_data->ticks_passed += (frames_data->current_tick_time - frames_data->previous_tick_time);
-	frames_data->previous_tick_time = frames_data->current_tick_time;
-
+	frames_data->ticks_passed += (SDL_GetTicks() - frames_data->previous_tick_time);
 	if (frames_data->ticks_passed > 500) {
 		frames_data->current_framerate = 1000 / ((double)frames_data->ticks_passed / frames_data->num_updates);
 
@@ -57,7 +55,6 @@ void calculate_framerate(struct frame_time_info *frames_data) {
 }
 
 void frame_rate_cap(struct frame_time_info *frames_data) {
-	frames_data->previous_tick_time = frames_data->current_tick_time;
 	frames_data->current_tick_time = SDL_GetTicks();
 
 	// minus 1 since we have a sdl delay of 1 in the main loop just in case the program is behind it allows some delay
@@ -71,7 +68,6 @@ void frame_rate_cap(struct frame_time_info *frames_data) {
 		wait += (int)frames_data->ms_remainder;
 		frames_data->ms_remainder -= (int)frames_data->ms_remainder;
 	}
-
 	SDL_Delay(wait);
 }
 
@@ -99,7 +95,7 @@ int main(int argc, char *argv[]) {
 	init_asset_dimensions(&asset_1, 100, 100, 100, 100);
 	SDL_Colour colour = {0, 0, 0};
 	init_text_information(&text_1, "It was the beepst of times, it was the boopst of times.\0", colour, 24, 200, 500, 750, 100);
-	init_text_information(&frames_text, "\0", colour, 24, 900, 0, 300, 120);
+	init_text_information(&frames_text, "\0", colour, 128, 900, 0, 300, 120);
 
 	asset_1.asset_texture = load_asset(&game_app, "Texture_assets/Hello_World.png");
 	init_audio(&audio);
@@ -107,9 +103,9 @@ int main(int argc, char *argv[]) {
 	// play_music(audio.music, -1);
 
 	// main loop
-	while (1) {
-		frames_data.current_tick_time = SDL_GetTicks();	 // time at start
 
+	while (1) {
+		frames_data.previous_tick_time = SDL_GetTicks();  // time at start
 		prep_screen(&game_app);
 
 		process_input(&user_input);
@@ -129,10 +125,14 @@ int main(int argc, char *argv[]) {
 
 		SDL_Delay(1);
 		sprintf(frames_text.text, "%.2lf FPS", frames_data.current_framerate);
-		calculate_framerate(&frames_data);
 
 		frame_rate_cap(&frames_data);
+		calculate_framerate(&frames_data);
 	}
 
 	return 0;
 }
+
+// get tick
+// run program
+//
