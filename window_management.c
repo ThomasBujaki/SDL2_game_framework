@@ -20,7 +20,7 @@ void init_window(struct top_level_window *game_app) {
 
 	window_flags = 0;
 
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0) {
 		printf("Error: initialize SDL: %s\n", SDL_GetError());
 		exit(1);
 	}

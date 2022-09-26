@@ -4,7 +4,7 @@
  * @brief
  */
 
-#include </opt/homebrew/include/SDL2/SDL_log.h>
+#include </opt/homebrew/include/SDL2/SDL_log.h>	 // could remove /opt/homebrew/include/SDL2/
 
 #include "audio_management.h"
 #include "graphics_management.h"
@@ -23,7 +23,7 @@ struct text_information {
 	int text_y;
 	int text_width;
 	int text_height;
-	int text_font;
+	int text_font_size;
 	SDL_Colour text_colour;
 	char text[256];
 };

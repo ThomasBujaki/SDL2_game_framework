@@ -12,24 +12,24 @@
 
 #include "asset_management.h"
 
+/*todo implement collision detection
+ */
+
 struct argument_parameters {
-	int temp;
 };
 
 struct frame_time_info {
-	long current_tick_time;
-	long previous_tick_time;
+	struct timespec beginning_of_framrate_calc;
+	struct timespec prev_time;
 	double frame_rate_target;
-	double ms_per_frame;
-	double ms_remainder;  // remainder of time caused by dividing 1000 by the frame rate target
+	long ns_per_frame;
 	int num_updates;
-	int ticks_passed;
-	double current_framerate;
+	int current_framerate;
 };
 
 void init_frame_rate_parameters(struct frame_time_info *frames_data) {
-	frames_data->frame_rate_target = 60;
-	frames_data->ms_per_frame = 1000 / frames_data->frame_rate_target;
+	frames_data->frame_rate_target = 10;
+	frames_data->ns_per_frame = 1000000000 / frames_data->frame_rate_target;
 }
 
 void init_SDL_settings() {
@@ -45,30 +45,39 @@ int process_arguments(int ac, char **av, struct argument_parameters *arguments) 
 
 void calculate_framerate(struct frame_time_info *frames_data) {
 	frames_data->num_updates++;
-	frames_data->ticks_passed += (SDL_GetTicks() - frames_data->previous_tick_time);
-	if (frames_data->ticks_passed > 500) {
-		frames_data->current_framerate = 1000 / ((double)frames_data->ticks_passed / frames_data->num_updates);
+	struct timespec right_now = {};
+	clock_gettime(CLOCK_MONOTONIC, &right_now);
 
+	if (right_now.tv_sec - frames_data->prev_time.tv_sec >= 1) {
+		clock_gettime(CLOCK_MONOTONIC, &frames_data->prev_time);
+		frames_data->current_framerate = frames_data->num_updates;
 		frames_data->num_updates = 0;
-		frames_data->ticks_passed = 0;
 	}
 }
 
+// todo: change all timekeeping to nanoseconds.
 void frame_rate_cap(struct frame_time_info *frames_data) {
-	frames_data->current_tick_time = SDL_GetTicks();
-
-	// minus 1 since we have a sdl delay of 1 in the main loop just in case the program is behind it allows some delay
-	int wait = (int)frames_data->ms_per_frame - 1 - (frames_data->current_tick_time - frames_data->previous_tick_time);
-	frames_data->ms_remainder += frames_data->ms_per_frame - (int)frames_data->ms_per_frame;
-
-	if (wait < 0) {	 // already behind time, dont wait before the next update
-		return;
+	struct timespec wait = {};
+	struct timespec right_now = {};
+	clock_gettime(CLOCK_MONOTONIC, &right_now);
+	printf("beg\t %ld nanosec\n", frames_data->beginning_of_framrate_calc.tv_nsec);
+	printf("now\t %ld nanosec\n", right_now.tv_nsec);
+	printf("ns\t %ld \n", frames_data->ns_per_frame);
+	if (right_now.tv_sec - frames_data->beginning_of_framrate_calc.tv_sec == 1) {
+		wait.tv_nsec = frames_data->ns_per_frame - (right_now.tv_nsec - frames_data->beginning_of_framrate_calc.tv_nsec + 999999999);
+	} else {
+		wait.tv_nsec = frames_data->ns_per_frame - (right_now.tv_nsec - frames_data->beginning_of_framrate_calc.tv_nsec);
 	}
-	if (frames_data->ms_remainder > 1) {
-		wait += (int)frames_data->ms_remainder;
-		frames_data->ms_remainder -= (int)frames_data->ms_remainder;
+
+	if (wait.tv_nsec < 0) {	 // already behind time, dont wait before the next update
+		wait.tv_nsec = 1;
+		// return;
 	}
-	SDL_Delay(wait);
+	nanosleep(&wait, NULL);
+
+	clock_gettime(CLOCK_MONOTONIC, &frames_data->beginning_of_framrate_calc);
+
+	//	printf("Wait:     %ld nano\n", wait.tv_nsec);
 }
 
 int main(int argc, char *argv[]) {
@@ -77,6 +86,8 @@ int main(int argc, char *argv[]) {
 	struct audio_assets audio = {};
 
 	// FPS
+	struct timespec tstart = {0, 0}, tend = {0, 0};
+
 	struct frame_time_info frames_data = {};
 	init_frame_rate_parameters(&frames_data);
 
@@ -88,6 +99,7 @@ int main(int argc, char *argv[]) {
 
 	// Assets
 	struct asset_information asset_1 = {};
+
 	struct text_information text_1 = {};
 	struct text_information frames_text = {};
 
@@ -97,15 +109,26 @@ int main(int argc, char *argv[]) {
 	init_text_information(&text_1, "It was the beepst of times, it was the boopst of times.\0", colour, 24, 200, 500, 750, 100);
 	init_text_information(&frames_text, "\0", colour, 128, 900, 0, 300, 120);
 
+	struct asset_information asset_2[50000] = {};
+	init_asset_dimensions(&asset_2[0], rand() % 1280, 0, 5, 5);
+	asset_2[0].asset_texture = load_asset(&game_app, "Texture_assets/point.png");
+	int i;
+	for (i = 1; i < 50000; i++) {
+		init_asset_dimensions(&asset_2[i], rand() % 1280, 0, 5, 5);
+
+		asset_2[i].asset_texture = asset_2[0].asset_texture;
+	}
+
 	asset_1.asset_texture = load_asset(&game_app, "Texture_assets/Hello_World.png");
 	init_audio(&audio);
 
 	// play_music(audio.music, -1);
 
 	// main loop
-
+	clock_gettime(CLOCK_MONOTONIC, &frames_data.beginning_of_framrate_calc);
 	while (1) {
-		frames_data.previous_tick_time = SDL_GetTicks();  // time at start
+		clock_gettime(CLOCK_MONOTONIC, &tstart);
+
 		prep_screen(&game_app);
 
 		process_input(&user_input);
@@ -116,23 +139,31 @@ int main(int argc, char *argv[]) {
 
 		update_asset_location_user_input(&asset_1, &user_input, 5);	 //
 		update_asset_size(&asset_1, &user_input);
-
+		/*
+				for (i = 0; i < 50000; i++) {
+					set_asset_position(&asset_2[i], asset_2[i].asset_x, asset_2[i].asset_y + rand() % 10);
+					draw_texture(&game_app, &asset_2[i]);
+					if (asset_2[i].asset_y > 500) {
+						asset_2[i].asset_y = 0;
+					}
+				}
+		*/
 		draw_texture(&game_app, &asset_1);
 		draw_text(&game_app, &text_1);
 		draw_text(&game_app, &frames_text);
 
 		present_screen(&game_app);
 
-		SDL_Delay(1);
-		sprintf(frames_text.text, "%.2lf FPS", frames_data.current_framerate);
+		sprintf(frames_text.text, "%d FPS", frames_data.current_framerate);
 
-		frame_rate_cap(&frames_data);
 		calculate_framerate(&frames_data);
+		frame_rate_cap(&frames_data);
+
+		clock_gettime(CLOCK_MONOTONIC, &tend);
+		printf("some_long_computation took about %.5f seconds\n",
+			   ((double)tend.tv_sec + 1.0e-9 * tend.tv_nsec) -
+				   ((double)tstart.tv_sec + 1.0e-9 * tstart.tv_nsec));
 	}
 
 	return 0;
 }
-
-// get tick
-// run program
-//

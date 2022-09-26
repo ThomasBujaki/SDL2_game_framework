@@ -16,7 +16,7 @@ void init_asset_dimensions(struct asset_information *asset, int x, int y, int w,
 void init_text_information(struct text_information *text_data, char text_string[256], SDL_Colour colour, int font, int x, int y, int w, int h) {
 	strncpy(text_data->text, text_string, 255);
 	text_data->text_colour = colour;
-	text_data->text_font = font;
+	text_data->text_font_size = font;
 	text_data->text_x = x;
 	text_data->text_y = y;
 	text_data->text_width = w;
@@ -79,7 +79,7 @@ void draw_texture(struct top_level_window *game_app, struct asset_information *a
 }
 
 void draw_text(struct top_level_window *game_app, struct text_information *display_text) {
-	TTF_Font *times_font = TTF_OpenFont("times.ttf", display_text->text_font);
+	TTF_Font *times_font = TTF_OpenFont("times.ttf", display_text->text_font_size);
 
 	SDL_Surface *surfaceMessage = TTF_RenderText_Solid(times_font, display_text->text, display_text->text_colour);
 

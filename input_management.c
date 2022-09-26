@@ -6,8 +6,6 @@
 
 #include "input_management.h"
 
-#include </opt/homebrew/include/SDL2/SDL_events.h>
-
 void process_key(SDL_KeyboardEvent *event, int event_type, struct events_data *user_input) {
 	// event type 1 is pressed, 2 is lifted
 	if (event_type == 1) {
@@ -47,6 +45,17 @@ void process_key(SDL_KeyboardEvent *event, int event_type, struct events_data *u
 	}
 }
 
+void process_controller_joystick(SDL_ControllerAxisEvent *joy_stick_events, struct events_data *user_input) {
+	printf("axis: %d\n", joy_stick_events->axis);
+	printf("type: %d\n", joy_stick_events->type);
+	printf("value: %d\n", joy_stick_events->value);
+	printf("which: %d\n", joy_stick_events->which);
+	printf("timestamp: %d\n", joy_stick_events->timestamp);
+}
+
+void process_controller_buttons() {
+}
+
 void process_mouse_click(struct events_data *user_input) {
 	printf("Mouse Clicked\n");
 	user_input->mouse_clicked = true;
@@ -64,9 +73,11 @@ void process_gamepad_inout() {
 
 void process_input(struct events_data *user_input) {
 	SDL_Event event;
-	// for updating mouse stuff:
-	// 	SDL_GetMouseState(&app.mouse.x, &app.mouse.y);
-
+	//	SDL_GameController *T;	// todo clean up this controller stuff
+	//	T = SDL_GameControllerOpen(0);
+	//	SDL_GameControllerAxis axis;
+	//	SDL_GameControllerButtonBind A = SDL_GameControllerGetBindForAxis(T, axis);
+	//	printf("axis? %d\n", A.value.axis);
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
 			case SDL_QUIT:
@@ -84,8 +95,18 @@ void process_input(struct events_data *user_input) {
 			case SDL_MOUSEWHEEL:
 				process_mousewheel(&event.wheel, user_input);
 				break;
+				// todo: below doesn't work
+			case SDL_CONTROLLERBUTTONDOWN:
+				// process_controller(&event.cbutton, user_input);
+				//	printf("HELLO\n");
+				break;
+			case SDL_CONTROLLERAXISMOTION:
+				// printf("JOY\n");
+				//	process_controller_joystick(&event.caxis, user_input);
+				break;
 			default:
 				break;
 		}
 	}
+	//	SDL_GameControllerClose(T);
 }
