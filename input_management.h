@@ -25,6 +25,7 @@ struct events_data {
 	bool mouse_scrolled;
 	int mouse_scrolled_magnitude;
 	bool controller_events[4];	// a, b, x, y
+	int angle_change;
 	SDL_JoyAxisEvent joy_stick_events;
 };
 

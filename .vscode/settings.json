@@ -3,6 +3,12 @@
         "*.c": "c",
         "asset_management.h": "c",
         "input_management.h": "c",
-        "sdl_gamecontroller.h": "c"
+        "sdl_gamecontroller.h": "c",
+        "type_traits": "c",
+        "graphics_management.h": "c",
+        "window_management.h": "c",
+        "audio_management.h": "c",
+        "game_logic.h": "c",
+        "common_include.h": "c"
     }
 }

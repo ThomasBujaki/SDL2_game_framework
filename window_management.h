@@ -11,6 +11,7 @@
 #include </opt/homebrew/include/SDL2/SDL_image.h>
 #include </opt/homebrew/include/SDL2/SDL_mixer.h>
 #include </opt/homebrew/include/SDL2/SDL_ttf.h>
+#include <stdbool.h>
 
 struct top_level_window {
 	SDL_Renderer *renderer;

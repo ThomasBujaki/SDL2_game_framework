@@ -6,17 +6,20 @@
 
 #include "asset_management.h"
 
-void init_asset_dimensions(struct asset_information *asset, int x, int y, int w, int h) {
+void init_asset_dimensions(struct asset_information *asset, int x, int y, int w, int h, int a) {
 	asset->asset_x = x;
 	asset->asset_y = y;
 	asset->asset_width = w;
 	asset->asset_height = h;
+	asset->asset_angle = a;
 }
 
-void init_text_information(struct text_information *text_data, char text_string[256], SDL_Colour colour, int font, int x, int y, int w, int h) {
+void init_text_information(struct text_information *text_data, char filepath[256], char text_string[256], SDL_Colour colour, int font, int x, int y, int w, int h) {
+	//	TTF_Font *times_font = TTF_OpenFont("times.ttf", display_text->text_font_size);
 	strncpy(text_data->text, text_string, 255);
 	text_data->text_colour = colour;
 	text_data->text_font_size = font;
+	text_data->font = TTF_OpenFont(filepath, text_data->text_font_size);
 	text_data->text_x = x;
 	text_data->text_y = y;
 	text_data->text_width = w;
@@ -37,6 +40,14 @@ void update_asset_size(struct asset_information *asset, struct events_data *user
 			asset->asset_height -= user_input->mouse_scrolled_magnitude;
 		}
 		user_input->mouse_scrolled = false;
+	}
+}
+
+void change_asset_angle(struct asset_information *asset, struct events_data *user_input, int magnitude) {
+	if (user_input->angle_change < 0) {	 // left?
+		asset->asset_angle -= magnitude;
+	} else if (user_input->angle_change > 0) {	// right?
+		asset->asset_angle += magnitude;
 	}
 }
 
@@ -75,13 +86,11 @@ void draw_texture(struct top_level_window *game_app, struct asset_information *a
 	asset_dimensions.w = asset->asset_width;
 	asset_dimensions.h = asset->asset_height;
 	// todo: replace with SDL_RenderCopyEx for rotation and extra features
-	SDL_RenderCopy(game_app->renderer, asset->asset_texture, NULL, &asset_dimensions);
+	SDL_RenderCopyEx(game_app->renderer, asset->asset_texture, NULL, &asset_dimensions, asset->asset_angle, NULL, SDL_FLIP_NONE);
 }
 
 void draw_text(struct top_level_window *game_app, struct text_information *display_text) {
-	TTF_Font *times_font = TTF_OpenFont("times.ttf", display_text->text_font_size);
-
-	SDL_Surface *surfaceMessage = TTF_RenderText_Solid(times_font, display_text->text, display_text->text_colour);
+	SDL_Surface *surfaceMessage = TTF_RenderText_Solid(display_text->font, display_text->text, display_text->text_colour);
 
 	SDL_Texture *Message = SDL_CreateTextureFromSurface(game_app->renderer, surfaceMessage);
 
@@ -93,7 +102,7 @@ void draw_text(struct top_level_window *game_app, struct text_information *displ
 
 	SDL_RenderCopy(game_app->renderer, Message, NULL, &Message_rect);
 
-	TTF_CloseFont(times_font);
+	//	TTF_CloseFont(times_font);
 	SDL_FreeSurface(surfaceMessage);
 	SDL_DestroyTexture(Message);
 }
