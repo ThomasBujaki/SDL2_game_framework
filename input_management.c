@@ -115,6 +115,8 @@ void process_input(struct events_data *user_input) {
 			controller = SDL_GameControllerOpen(i);
 		}
 	}
+	SDL_GetMouseState(&user_input->mouse.x, &user_input->mouse.y);
+
 	// printf("Mapping: %s\n", SDL_GameControllerMapping(controller));
 
 	//	SDL_GameControllerAxis axis;

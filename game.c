@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "game_logic.h"
+#include "world.h"
 
 #define ONE_SEC_AS_NANO 1000000000
 
@@ -85,7 +85,6 @@ int main(int argc, char *argv[]) {
 	struct top_level_window game_app = {};
 	struct events_data user_input = {};
 	struct audio_assets audio = {};
-
 	// FPS
 	//	struct timespec tstart = {0, 0}, tend = {0, 0};
 
@@ -98,25 +97,60 @@ int main(int argc, char *argv[]) {
 	init_window(&game_app);
 	atexit(cleanup);
 
-	// init Assets
-	struct asset_information asset_1 = {};
-	init_asset_dimensions(&asset_1, 100, 100, 100, 100, 0);
-	asset_1.asset_texture = load_asset(&game_app, "Texture_assets/Hello_World.png");
+	// World
+	struct world_assets assets_of_world = {};
+	struct world_state state_of_world = {};
 
-	struct asset_information asset_2 = {};
-	init_asset_dimensions(&asset_2, 500, 250, 100, 100, 0);
-	asset_2.asset_texture = load_asset(&game_app, "Texture_assets/point.png");
+	// init Assets
+	// todo move inits to a different function
+	struct asset_information *asset_list[50000] = {};
+	int i = 0, j = 0;
+	struct asset_information player_asset = {};
+
+	asset_list[i] = &player_asset;
+	init_asset_dimensions(&player_asset, 100, 100, 100, 100, 0);
+	i++;
+
+	player_asset.texture = load_texture(&game_app, "Texture_assets/player.png");
+
+	struct asset_information alien_asset = {};
+	asset_list[i] = &alien_asset;
+	init_asset_dimensions(&alien_asset, 500, 250, 100, 100, 0);
+	i++;
+
+	alien_asset.texture = load_texture(&game_app, "Texture_assets/alien.png");
+
+	struct asset_information portal_asset = {};
+	asset_list[i] = &portal_asset;
+	init_asset_dimensions(&portal_asset, 500, 250, 100, 100, 0);
+	i++;
+
+	portal_asset.texture = load_texture(&game_app, "Texture_assets/portal.png");
+
+	assets_of_world.grass_tile = load_texture(&game_app, "Texture_assets/grass.png");
+
+	// todo, make asset for health monitoring
 
 	// init text
 	SDL_Colour colour = {0, 0, 0};
+	SDL_Colour red = {255, 0, 0};
 	struct text_information text_1 = {};
 	init_text_information(&text_1, "times.ttf", "It was the beepst of times, it was the boopst of times.\0", colour, 128, 200, 500, 750, 100);
+
+	struct text_information health = {};
+	init_text_information(&health, "times.ttf", "15/15\0", red, 64, 0, 50, 50, 50);
 
 	struct text_information frames_text = {};
 	init_text_information(&frames_text, "times.ttf", "\0", colour, 128, 900, 0, 300, 120);
 
 	struct text_information collision_text = {};
 	init_text_information(&collision_text, "times.ttf", "COLLISION!! LOOK OUT!!!1!\0", colour, 128, 500, 400, 600, 120);
+
+	struct text_information tooltip = {};
+	init_text_information(&tooltip, "times.ttf", "\0", colour, 16, 0, 0, 100, 40);
+
+	struct text_information debug_output = {};
+	init_text_information(&debug_output, "times.ttf", "\0", colour, 64, 0, 100, 100, 50);
 
 	init_audio(&audio);
 
@@ -130,21 +164,33 @@ int main(int argc, char *argv[]) {
 		prep_screen(&game_app);
 
 		process_input(&user_input);
+
 		if (user_input.mouse_clicked == true) {
 			play_sound_effects(audio.sound_effects[0], 0);	// change the tailing 0 to change the channel that audio is played from
 			user_input.mouse_clicked = false;
 		}
 
-		change_asset_angle(&asset_1, &user_input, 10);
-		update_asset_location_user_input(&asset_1, &user_input, 5);	 //
-		update_asset_size(&asset_1, &user_input);
+		change_angle(&player_asset, &user_input, 10);
+		update_player_location_user_input(&state_of_world, &user_input, 5);
+		update_asset_size(&player_asset, &user_input);
 
-		draw_texture(&game_app, &asset_1);
-		draw_texture(&game_app, &asset_2);
+		draw_world(&game_app, &state_of_world, &assets_of_world);
+		draw_texture(&game_app, &player_asset);
+		draw_texture(&game_app, &alien_asset);
 		draw_text(&game_app, &text_1);
+		draw_text(&game_app, &health);
 		draw_text(&game_app, &frames_text);
+		for (j = 0; j < i; j++) {
+			if (is_moused_over(asset_list[j], &user_input)) {
+				printf("AFTER\n");
+				draw_text(&game_app, &collision_text);
+			}
+		}
 
-		if (collision_detection(&asset_1, &asset_2)) {
+		sprintf(debug_output.text, "X:%d Y:%d", user_input.mouse.x, user_input.mouse.y);
+		draw_text(&game_app, &debug_output);
+
+		if (collision_detection(&player_asset, &alien_asset)) {
 			draw_text(&game_app, &collision_text);
 		}
 

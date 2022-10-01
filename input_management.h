@@ -18,6 +18,11 @@ enum controller_inputs { a_button = 0,
 						 x_button = 2,
 						 y_button = 3 };
 
+struct mouse_event_data {
+	int x;
+	int y;
+};
+
 // todo change these to use the SDL built in structs for these events
 struct events_data {
 	bool keyboard_events[4];  // up, down, left, right
@@ -27,11 +32,7 @@ struct events_data {
 	bool controller_events[4];	// a, b, x, y
 	int angle_change;
 	SDL_JoyAxisEvent joy_stick_events;
-};
-
-struct mouse_event_data {
-	int x;
-	int y;
+	struct mouse_event_data mouse;
 };
 
 void process_input(struct events_data *user_input);

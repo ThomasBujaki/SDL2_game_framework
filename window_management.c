@@ -49,6 +49,7 @@ void init_window(struct top_level_window *game_app) {
 	}
 	IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG);
 	TTF_Init();
+	SDL_ShowCursor(0);
 }
 
 // todo issue with passing variable, do I need to destroyrenderer and destroywindow here for the

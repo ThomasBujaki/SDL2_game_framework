@@ -7,11 +7,11 @@
 #include "asset_management.h"
 
 void init_asset_dimensions(struct asset_information *asset, int x, int y, int w, int h, int a) {
-	asset->asset_x = x;
-	asset->asset_y = y;
-	asset->asset_width = w;
-	asset->asset_height = h;
-	asset->asset_angle = a;
+	asset->x = x;
+	asset->y = y;
+	asset->width = w;
+	asset->height = h;
+	asset->angle = a;
 }
 
 void init_text_information(struct text_information *text_data, char filepath[256], char text_string[256], SDL_Colour colour, int font, int x, int y, int w, int h) {
@@ -26,7 +26,7 @@ void init_text_information(struct text_information *text_data, char filepath[256
 	text_data->text_height = h;
 }
 
-SDL_Texture *load_asset(struct top_level_window *game_app, char file_path[256]) {
+SDL_Texture *load_texture(struct top_level_window *game_app, char file_path[256]) {
 	SDL_Texture *texture;
 	SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, "Loading %s", file_path);
 	texture = IMG_LoadTexture(game_app->renderer, file_path);
@@ -35,58 +35,43 @@ SDL_Texture *load_asset(struct top_level_window *game_app, char file_path[256]) 
 
 void update_asset_size(struct asset_information *asset, struct events_data *user_input) {
 	if (user_input->mouse_scrolled == true) {
-		if ((asset->asset_height > 5 && asset->asset_width > 5) || (asset->asset_height < 500 && asset->asset_width < 500)) {
-			asset->asset_width -= user_input->mouse_scrolled_magnitude;
-			asset->asset_height -= user_input->mouse_scrolled_magnitude;
+		if ((asset->height > 5 && asset->width > 5) || (asset->height < 500 && asset->width < 500)) {
+			asset->width -= user_input->mouse_scrolled_magnitude;
+			asset->height -= user_input->mouse_scrolled_magnitude;
 		}
 		user_input->mouse_scrolled = false;
 	}
 }
 
-void change_asset_angle(struct asset_information *asset, struct events_data *user_input, int magnitude) {
+void change_angle(struct asset_information *asset, struct events_data *user_input, int magnitude) {
 	if (user_input->angle_change < 0) {	 // left?
-		asset->asset_angle -= magnitude;
+		asset->angle -= magnitude;
 	} else if (user_input->angle_change > 0) {	// right?
-		asset->asset_angle += magnitude;
+		asset->angle += magnitude;
 	}
 }
 
 void set_asset_position(struct asset_information *asset, int x, int y) {
-	asset->asset_x = x;
-	asset->asset_y = y;
+	asset->x = x;
+	asset->y = y;
 }
 
 void change_asset_position(struct asset_information *asset, int delta_x, int delta_y) {
-	asset->asset_x += delta_x;
-	asset->asset_y += delta_y;
-}
-
-void update_asset_location_user_input(struct asset_information *asset, struct events_data *user_input, int magnitude) {
-	if (user_input->keyboard_events[up_key] == true) {
-		asset->asset_y -= magnitude;
-	}
-	if (user_input->keyboard_events[down_key] == true) {
-		asset->asset_y += magnitude;
-	}
-	if (user_input->keyboard_events[left_key] == true) {
-		asset->asset_x -= magnitude;
-	}
-	if (user_input->keyboard_events[right_key] == true) {
-		asset->asset_x += magnitude;
-	}
+	asset->x += delta_x;
+	asset->y += delta_y;
 }
 
 void draw_texture(struct top_level_window *game_app, struct asset_information *asset) {
 	SDL_Rect asset_dimensions;
 
-	asset_dimensions.x = asset->asset_x;
-	asset_dimensions.y = asset->asset_y;
+	asset_dimensions.x = asset->x;
+	asset_dimensions.y = asset->y;
 
-	// SDL_QueryTexture(asset->asset_texture, NULL, NULL, &asset_dimensions.w, &asset_dimensions.h);
-	asset_dimensions.w = asset->asset_width;
-	asset_dimensions.h = asset->asset_height;
+	// SDL_QueryTexture(asset->texture, NULL, NULL, &asset_dimensions.w, &asset_dimensions.h);
+	asset_dimensions.w = asset->width;
+	asset_dimensions.h = asset->height;
 	// todo: replace with SDL_RenderCopyEx for rotation and extra features
-	SDL_RenderCopyEx(game_app->renderer, asset->asset_texture, NULL, &asset_dimensions, asset->asset_angle, NULL, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(game_app->renderer, asset->texture, NULL, &asset_dimensions, asset->angle, NULL, SDL_FLIP_NONE);
 }
 
 void draw_text(struct top_level_window *game_app, struct text_information *display_text) {

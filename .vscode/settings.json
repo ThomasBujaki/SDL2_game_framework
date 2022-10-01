@@ -9,6 +9,8 @@
         "window_management.h": "c",
         "audio_management.h": "c",
         "game_logic.h": "c",
-        "common_include.h": "c"
+        "common_include.h": "c",
+        "__node_handle": "c",
+        "world.h": "c"
     }
 }
