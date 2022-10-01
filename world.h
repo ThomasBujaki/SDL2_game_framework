@@ -7,6 +7,8 @@ struct world_assets {
 };
 
 struct world_state {
+	int world_offset_x;
+	int world_offset_y;
 	struct position player_position;
 };
 

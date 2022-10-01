@@ -75,10 +75,10 @@ Needed for minimum viable product:
 
 
 graphics: 
-    - game view center screen
+    *- game view center screen
     *- health indicator
     - menu for item equiping
-    - 10 second timer of some sort
+    *- 10 second timer of some sort
     - text window to show what item is selected (tooltip on mouse)
     - pickup based on distance
 

@@ -5,15 +5,25 @@
 void update_player_location_user_input(struct world_state *state, struct events_data *user_input, int magnitude) {
 	if (user_input->keyboard_events[up_key] == true) {
 		state->player_position.y -= magnitude;
+		state->world_offset_y = magnitude;
 	}
 	if (user_input->keyboard_events[down_key] == true) {
 		state->player_position.y += magnitude;
+		state->world_offset_y = -magnitude;
+	}
+	if (user_input->keyboard_events[up_key] == false && user_input->keyboard_events[down_key] == false) {
+		state->world_offset_y = 0;
 	}
 	if (user_input->keyboard_events[left_key] == true) {
 		state->player_position.x -= magnitude;
+		state->world_offset_x = magnitude;
 	}
 	if (user_input->keyboard_events[right_key] == true) {
 		state->player_position.x += magnitude;
+		state->world_offset_x = -magnitude;
+	}
+	if (user_input->keyboard_events[left_key] == false && user_input->keyboard_events[right_key] == false) {
+		state->world_offset_x = 0;
 	}
 }
 
@@ -25,8 +35,10 @@ void draw_tiles(struct top_level_window *game_app, struct world_state *state, st
 	for (int x = -world_width; x < world_width; x++) {
 		for (int y = -world_height; y < world_height; y++) {
 			SDL_Rect tile_rectangle;
-			tile_rectangle.x = x * 100 - (state->player_position.x);
-			tile_rectangle.y = y * 100 - (state->player_position.y);
+			// need to make it so the ground doesn't move
+			tile_rectangle.x = x * 100 - (state->player_position.x) + state->world_offset_x;
+			tile_rectangle.y = y * 100 - (state->player_position.y) + state->world_offset_y;
+			//	printf("%d %d\n", tile_rectangle.x, tile_rectangle.y);
 			tile_rectangle.w = 100;
 			tile_rectangle.h = 100;
 			SDL_RenderCopyEx(game_app->renderer, assets->grass_tile, NULL, &tile_rectangle, 0, NULL, SDL_FLIP_NONE);
