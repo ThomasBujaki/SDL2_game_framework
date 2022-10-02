@@ -6,7 +6,7 @@
 
 #include "asset_management.h"
 
-void init_asset_dimensions(struct asset_information *asset, int x, int y, int w_x, int w_y, int w, int h, int a, char str[64], bool asset_in_world, int speed) {
+void init_asset_dimensions(struct asset_information *asset, int x, int y, int w_x, int w_y, int w, int h, int a, char str[64], bool asset_in_world, int speed, int vit) {
 	asset->x = x;
 	asset->y = y;
 	asset->world_x = w_x;
@@ -14,9 +14,10 @@ void init_asset_dimensions(struct asset_information *asset, int x, int y, int w_
 	asset->width = w;
 	asset->height = h;
 	asset->angle = a;
-	strncpy(asset->description, str, 63);
+	strncpy(asset->description, str, 31);
 	asset->does_exist = asset_in_world;
 	asset->speed = speed;
+	asset->vitality = vit;
 }
 
 void init_text_information(struct text_information *text_data, char filepath[256], char text_string[256], SDL_Colour colour, int font, int x, int y, int w, int h) {

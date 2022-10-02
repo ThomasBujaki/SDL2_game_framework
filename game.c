@@ -85,7 +85,9 @@ int main(int argc, char *argv[]) {
 	struct top_level_window game_app = {};
 	struct events_data user_input = {};
 	struct audio_assets audio = {};
-	int attack_animation_frames = 0;
+	int attack_animation_frames = 0, bullet_number = 0;
+	int l;
+
 	// FPS
 	// struct timespec tstart = {0, 0}, tend = {0, 0};
 
@@ -109,7 +111,7 @@ int main(int argc, char *argv[]) {
 
 	struct asset_information player_asset = {};
 	asset_list[asset_num] = &player_asset;
-	init_asset_dimensions(&player_asset, 0, 0, 0, 0, 30, 30, 0, "player\0", true, 5);
+	init_asset_dimensions(&player_asset, 0, 0, 0, 0, 30, 30, 0, "player\0", true, 5, 15);
 	player_asset.x = game_app.window_width / 2 - player_asset.width / 2;  // put player in the center of the screen
 	player_asset.y = game_app.window_height / 2 - player_asset.height / 2;
 	player_asset.world_x = player_asset.x;
@@ -119,38 +121,51 @@ int main(int argc, char *argv[]) {
 
 	struct asset_information tree_asset = {};
 	asset_list[asset_num] = &tree_asset;
-	init_asset_dimensions(&tree_asset, 0, 0, 0, 0, 20, 20, 0, "tree\0", true, 5);
+	init_asset_dimensions(&tree_asset, 0, 0, 0, 0, 20, 20, 0, "tree\0", true, 5, 5);
 	asset_num++;
 	tree_asset.texture = load_texture(&game_app, "Texture_assets/tree.png");
 
 	struct asset_information portal_asset = {};
 	asset_list[asset_num] = &portal_asset;
-	init_asset_dimensions(&portal_asset, 1000, 250, 1000, 250, 100, 100, 0, "portal\0", true, 0);
+	init_asset_dimensions(&portal_asset, 1000, 250, 1000, 250, 100, 100, 0, "portal\0", true, 0, 1000);
 	asset_num++;
 	portal_asset.texture = load_texture(&game_app, "Texture_assets/portal.png");
 
 	struct asset_information alien_asset[64620] = {};  // 64620 is the triangle number of 360
 	asset_list[asset_num] = &alien_asset[0];
-	init_asset_dimensions(&alien_asset[0], portal_asset.world_x, portal_asset.world_y, portal_asset.world_x, portal_asset.world_y, 20, 20, 0, "alien\0", true, 4);
+	init_asset_dimensions(&alien_asset[0], portal_asset.world_x, portal_asset.world_y, portal_asset.world_x, portal_asset.world_y, 20, 20, 0, "alien\0", true, 4, 1);
 	asset_num++;
 	alien_asset[0].texture = load_texture(&game_app, "Texture_assets/alien.png");
 	for (j = 1; j < 64620; j++) {
 		asset_list[asset_num] = &alien_asset[j];
-		init_asset_dimensions(&alien_asset[j], portal_asset.world_x, portal_asset.world_y, portal_asset.world_x + portal_asset.width / 2, portal_asset.world_y + portal_asset.height / 2, 20, 20, 0, "alien\0", false, 4);
+		init_asset_dimensions(&alien_asset[j], portal_asset.world_x, portal_asset.world_y, portal_asset.world_x + portal_asset.width / 2, portal_asset.world_y + portal_asset.height / 2, 20, 20, 0, "alien\0", false, 4, 1);
 		asset_num++;
 		alien_asset[j].texture = alien_asset[0].texture;
 	}
 
 	struct asset_information crosshair_asset = {};
-	init_asset_dimensions(&crosshair_asset, 0, 0, 0, 0, 20, 20, 0, "\0", true, 0);
+	init_asset_dimensions(&crosshair_asset, 0, 0, 0, 0, 20, 20, 0, "\0", true, 0, 0);
 	crosshair_asset.texture = load_texture(&game_app, "Texture_assets/crosshair.png");
 
 	struct asset_information sword_asset = {};
-	init_asset_dimensions(&sword_asset, 100, 100, 100, 100, 10, 20, 0, "\0", true, 0);
+	init_asset_dimensions(&sword_asset, 100, 100, 100, 100, 10, 20, 0, "\0", true, 0, 1);
 	sword_asset.texture = load_texture(&game_app, "Texture_assets/sword.png");
 
+	struct asset_information gun_asset = {};
+	init_asset_dimensions(&gun_asset, 100, 100, 100, 100, 10, 20, 0, "\0", true, 0, 1);
+	gun_asset.texture = load_texture(&game_app, "Texture_assets/gun.png");
+
+	struct asset_information bullet_asset[100] = {};
+	init_asset_dimensions(&bullet_asset[0], 100, 100, 100, 100, 10, 20, 0, "\0", false, 10, 1);
+	bullet_asset[0].texture = load_texture(&game_app, "Texture_assets/bullet.png");
+	for (j = 1; j < 100; j++) {
+		init_asset_dimensions(&bullet_asset[j], 100, 100, 100, 100, 5, 5, 0, "\0", false, 10, 1);
+
+		bullet_asset[j].texture = bullet_asset[0].texture;
+	}
+
 	struct asset_information on_screen = {};  // I know i probaby should have made a new struct for this
-	init_asset_dimensions(&on_screen, 0, 0, 0, 0, game_app.window_width, game_app.window_height, 0, "\0", true, 0);
+	init_asset_dimensions(&on_screen, 0, 0, 0, 0, game_app.window_width, game_app.window_height, 0, "\0", true, 0, 0);
 
 	assets_of_world.grass_tile = load_texture(&game_app, "Texture_assets/grass.png");
 
@@ -245,7 +260,14 @@ int main(int argc, char *argv[]) {
 					// draw_texture(&game_app, &portal_asset);
 					// draw_texture(&game_app, &tree_asset);
 					if (j != 0) {
-						did_player_kill_alien(asset_list[j], &sword_asset);
+						if (did_player_kill_alien(asset_list[j], &sword_asset) == true) {
+							attack_animation_frames = 40;
+						}
+						for (l = 0; l < 100; l++) {
+							did_bullet_kill_enemy(asset_list[j], &bullet_asset[l]);
+						}
+
+						// check each bullet to see if it collided with an alien or the portal
 						draw_texture(&game_app, asset_list[j]);	 // draw all textures except player
 					}
 					if (is_moused_over(asset_list[j], &user_input)) {
@@ -257,7 +279,27 @@ int main(int argc, char *argv[]) {
 			}
 		}
 		draw_texture(&game_app, &player_asset);
-		attack_animation_frames = do_attack_animation(&game_app, &player_asset, &user_input, &sword_asset, attack_animation_frames);
+		if (user_input.keyboard_events[space_key] == true) {
+			attack_animation_frames = do_attack_animation(&game_app, &player_asset, &user_input, &sword_asset, attack_animation_frames);
+		} else if (user_input.keyboard_events[shift_key] == true) {
+			attack_animation_frames = do_gun_animation(&game_app, &player_asset, &user_input, attack_animation_frames, &gun_asset);
+			bullet_number += shoot_bullets(&gun_asset, bullet_number, &bullet_asset[bullet_number]);
+			if (bullet_number > 99) {
+				bullet_number = 0;
+			}
+			for (l = 0; l < 99; l++) {
+				printf("Exitsts: %d\n", bullet_asset[l].does_exist);
+				if (bullet_asset[l].does_exist == true) {
+					if (collision_detection_with_screen(&bullet_asset[l], &on_screen) == true) {
+						draw_texture(&game_app, &bullet_asset[l]);
+						bullet_asset[l].x += bullet_asset[l].speed;
+						bullet_asset[l].y += bullet_asset[l].speed;
+					} else {
+						bullet_asset->does_exist = false;
+					}
+				}
+			}
+		}
 
 		sprintf(alien_count.text, "Aliens: %d", aliens_alive);
 		sprintf(world_position.text, "pos: %d %d", player_asset.world_x, player_asset.world_y);
