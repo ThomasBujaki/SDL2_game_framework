@@ -7,8 +7,8 @@
 #include "input_management.h"
 
 void process_key(SDL_KeyboardEvent *event, int event_type, struct events_data *user_input) {
-	printf("%d\n", event->keysym.scancode);
-	// event type 1 is pressed, 2 is lifted
+	// printf("%d\n", event->keysym.scancode);
+	//  event type 1 is pressed, 2 is lifted
 	if (event_type == 1) {
 		switch (event->keysym.scancode) {
 			case 82:  // up

@@ -144,17 +144,34 @@ bool will_collide(int asset_num, struct asset_information *all_assets[asset_num]
 	return false;
 }
 
+bool will_collide_with_player(struct asset_information *player_asset, struct asset_information *moving_asset, struct alien_motion *x_y_to_move) {
+	if (moving_asset->world_x + x_y_to_move->x < player_asset->x + player_asset->width &&
+		moving_asset->world_x + x_y_to_move->x + moving_asset->width > player_asset->x &&
+		moving_asset->world_y + x_y_to_move->y < player_asset->y + player_asset->height &&
+		moving_asset->height + moving_asset->world_y + x_y_to_move->y > player_asset->y) {
+		return true;
+	}
+
+	return false;
+}
+
 void move_aliens(int asset_num, struct asset_information *all_assets[asset_num], struct asset_information *asset, struct asset_information *player_asset) {
 	// move in random direction unless alien is in vision of player
 
 	struct alien_motion x_y_to_move = {};
+
 	if (currently_colliding(asset_num, all_assets, asset, &x_y_to_move)) {
 		// printf("%d %d\n", x_y_to_move.x, x_y_to_move.y);
-		// change_asset_position(asset, x_y_to_move.x, x_y_to_move.y);
+		change_asset_position(asset, x_y_to_move.x, x_y_to_move.y);
 	} else {
 		if (is_alien_in_vision_of_player(asset, player_asset) == true) {
 			which_way_is_player(asset, player_asset, &x_y_to_move);
 		}
+
+		if (will_collide_with_player(player_asset, asset, &x_y_to_move)) {
+			player_asset->vitality -= asset->vitality;
+		}
+
 		if (will_collide(asset_num, all_assets, asset, &x_y_to_move)) {
 			x_y_to_move.x = 0;
 			x_y_to_move.y = 0;
@@ -176,8 +193,6 @@ int do_attack_animation(struct top_level_window *game_app, struct asset_informat
 	// determine which way the player is facing (where the mouse is pointed)
 	if (user_input->keyboard_events[space_key] == true) {
 		if (sword_asset->is_drawn == false) {
-			sword_asset->is_drawn = true;
-			sword_asset->y = player_asset->y + player_asset->height;
 			sword_asset->is_drawn = true;
 		}
 	}
@@ -222,17 +237,16 @@ bool did_player_kill_alien(struct asset_information *asset, struct asset_informa
 	return false;
 }
 
-int do_gun_animation(struct top_level_window *game_app, struct asset_information *player_asset, struct events_data *user_input, int num_frames, struct asset_information *gun_asset) {
+int do_gun_animation(struct top_level_window *game_app, struct asset_information *player_asset, struct events_data *user_input, int num_frames, struct asset_information *gun_asset, bool *have_shot) {
 	if (user_input->keyboard_events[shift_key] == true) {
 		if (gun_asset->is_drawn == false) {
-			gun_asset->is_drawn = true;
-			gun_asset->y = player_asset->y + player_asset->height;
 			gun_asset->is_drawn = true;
 		}
 	}
 	if (num_frames > 45) {
 		gun_asset->is_drawn = false;
 		user_input->keyboard_events[shift_key] = false;
+		*have_shot = false;
 		return -45;
 	}
 	if (gun_asset->is_drawn == true) {
@@ -247,19 +261,25 @@ int do_gun_animation(struct top_level_window *game_app, struct asset_information
 	return 0;
 }
 
-int shoot_bullets(struct asset_information *gun_asset, int bullet_number, struct asset_information *bullet_asset) {
+int shoot_bullets(struct asset_information *gun_asset, int bullet_number, struct asset_information *bullet_asset, bool *have_shot) {
 	bullet_asset->angle = gun_asset->angle;
 	bullet_asset->x = gun_asset->x;
 	bullet_asset->y = gun_asset->y;
 	bullet_asset->does_exist = true;
+	*have_shot = true;
 	return 1;
 }
 
-int did_bullet_kill_enemy(struct asset_information *asset, struct asset_information *bullet_asset) {
-	if (collision_detection(asset, bullet_asset)) {
-		asset->vitality -= bullet_asset->vitality;
-		if (asset->vitality <= 0) {
-			asset->does_exist = false;
+int did_bullet_kill_enemy(struct asset_information *asset, struct asset_information *bullet_asset, struct asset_information *gun_asset) {
+	if (bullet_asset->does_exist == true) {
+		if (collision_detection(asset, bullet_asset)) {
+			asset->vitality -= bullet_asset->vitality;
+			bullet_asset->does_exist = false;
+			bullet_asset->x = gun_asset->x;
+			bullet_asset->y = gun_asset->y;
+			if (asset->vitality <= 0) {
+				asset->does_exist = false;
+			}
 		}
 	}
 	return 0;

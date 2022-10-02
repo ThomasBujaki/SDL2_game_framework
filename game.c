@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
 	struct audio_assets audio = {};
 	int attack_animation_frames = 0, bullet_number = 0;
 	int l;
-
+	bool have_shot = false;
 	// FPS
 	// struct timespec tstart = {0, 0}, tend = {0, 0};
 
@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
 	sword_asset.texture = load_texture(&game_app, "Texture_assets/sword.png");
 
 	struct asset_information gun_asset = {};
-	init_asset_dimensions(&gun_asset, 100, 100, 100, 100, 10, 20, 0, "\0", true, 0, 1);
+	init_asset_dimensions(&gun_asset, 100, 100, 100, 100, 10, 20, 0, "GUN\0", true, 0, 1);
 	gun_asset.texture = load_texture(&game_app, "Texture_assets/gun.png");
 
 	struct asset_information bullet_asset[100] = {};
@@ -160,7 +160,6 @@ int main(int argc, char *argv[]) {
 	bullet_asset[0].texture = load_texture(&game_app, "Texture_assets/bullet.png");
 	for (j = 1; j < 100; j++) {
 		init_asset_dimensions(&bullet_asset[j], 100, 100, 100, 100, 5, 5, 0, "\0", false, 10, 1);
-
 		bullet_asset[j].texture = bullet_asset[0].texture;
 	}
 
@@ -174,8 +173,8 @@ int main(int argc, char *argv[]) {
 	// init text
 	SDL_Colour colour = {0, 0, 0};
 	SDL_Colour red = {255, 0, 0};
-	struct text_information text_1 = {};
-	init_text_information(&text_1, "times.ttf", "It was the beepst of times, it was the boopst of times.\0", colour, 128, 200, 500, 750, 100);
+	struct text_information game_over = {};
+	init_text_information(&game_over, "times.ttf", "Game Over\0", colour, 128, 200, 500, 750, 100);
 
 	struct text_information health = {};
 	init_text_information(&health, "times.ttf", "15/15\0", red, 64, 0, 50, 50, 50);
@@ -206,7 +205,7 @@ int main(int argc, char *argv[]) {
 	struct timespec ten_second_timekeeping = {};
 	clock_gettime(CLOCK_MONOTONIC, &frames_data.prev_time);
 	ten_second_timekeeping = frames_data.prev_time;
-	int alien_spawn = 0, aliens_alive = 0;
+	int alien_spawn = 50, aliens_alive = 0;
 	while (1) {
 		//		clock_gettime(CLOCK_MONOTONIC, &tstart);
 
@@ -264,7 +263,7 @@ int main(int argc, char *argv[]) {
 							attack_animation_frames = 40;
 						}
 						for (l = 0; l < 100; l++) {
-							did_bullet_kill_enemy(asset_list[j], &bullet_asset[l]);
+							did_bullet_kill_enemy(asset_list[j], &bullet_asset[l], &gun_asset);
 						}
 
 						// check each bullet to see if it collided with an alien or the portal
@@ -282,18 +281,21 @@ int main(int argc, char *argv[]) {
 		if (user_input.keyboard_events[space_key] == true) {
 			attack_animation_frames = do_attack_animation(&game_app, &player_asset, &user_input, &sword_asset, attack_animation_frames);
 		} else if (user_input.keyboard_events[shift_key] == true) {
-			attack_animation_frames = do_gun_animation(&game_app, &player_asset, &user_input, attack_animation_frames, &gun_asset);
-			bullet_number += shoot_bullets(&gun_asset, bullet_number, &bullet_asset[bullet_number]);
-			if (bullet_number > 99) {
-				bullet_number = 0;
+			attack_animation_frames = do_gun_animation(&game_app, &player_asset, &user_input, attack_animation_frames, &gun_asset, &have_shot);
+			if (have_shot == false) {
+				bullet_number += shoot_bullets(&gun_asset, bullet_number, &bullet_asset[bullet_number], &have_shot);
 			}
-			for (l = 0; l < 99; l++) {
-				printf("Exitsts: %d\n", bullet_asset[l].does_exist);
+
+			if (bullet_number > 99) {
+				bullet_number = 1;
+			}
+			for (l = 1; l < 99; l++) {
+				//		printf("Exitsts: %x %x\n", bullet_asset[0], gun_asset);
 				if (bullet_asset[l].does_exist == true) {
 					if (collision_detection_with_screen(&bullet_asset[l], &on_screen) == true) {
 						draw_texture(&game_app, &bullet_asset[l]);
-						bullet_asset[l].x += bullet_asset[l].speed;
-						bullet_asset[l].y += bullet_asset[l].speed;
+						bullet_asset[l].x += bullet_asset[l].speed * sin((double)gun_asset.angle * 3.14159 / 180);
+						bullet_asset[l].y += bullet_asset[l].speed * -cos((double)gun_asset.angle * 3.14159 / 180);
 					} else {
 						bullet_asset->does_exist = false;
 					}
@@ -304,7 +306,7 @@ int main(int argc, char *argv[]) {
 		sprintf(alien_count.text, "Aliens: %d", aliens_alive);
 		sprintf(world_position.text, "pos: %d %d", player_asset.world_x, player_asset.world_y);
 		draw_text(&game_app, &alien_count);
-		draw_text(&game_app, &text_1);
+		sprintf(health.text, "%d/15", player_asset.vitality);
 		draw_text(&game_app, &health);
 		draw_text(&game_app, &frames_text);
 		draw_text(&game_app, &world_position);
@@ -333,7 +335,10 @@ int main(int argc, char *argv[]) {
 		// if (collision_detection(&player_asset, &alien_asset)) {
 		//	draw_text(&game_app, &tooltip);
 		// }
-
+		if (player_asset.vitality <= 0) {
+			draw_text(&game_app, &game_over);
+			//	break;
+		}
 		present_screen(&game_app);
 
 		sprintf(frames_text.text, "%d FPS", frames_data.current_framerate);
