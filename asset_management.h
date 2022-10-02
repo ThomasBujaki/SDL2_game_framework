@@ -27,6 +27,7 @@ struct asset_information {
 	char description[64];
 	bool is_drawn;
 	bool does_exist;
+	int speed;
 };
 
 struct text_information {
@@ -40,7 +41,7 @@ struct text_information {
 	char text[256];
 };
 
-void init_asset_dimensions(struct asset_information *asset, int x, int y, int w_x, int w_y, int w, int h, int a, char str[64], bool asset_in_world);
+void init_asset_dimensions(struct asset_information *asset, int x, int y, int w_x, int w_y, int w, int h, int a, char str[64], bool asset_in_world, int speed);
 void init_text_information(struct text_information *text_data, char filepath[256], char text_string[256], SDL_Colour colour, int font, int x, int y, int w, int h);
 SDL_Texture *load_texture(struct top_level_window *game_app, char file_path[256]);
 void update_asset_size(struct asset_information *asset, struct events_data *user_input);

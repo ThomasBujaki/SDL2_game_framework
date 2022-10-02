@@ -6,7 +6,7 @@
 
 #include "asset_management.h"
 
-void init_asset_dimensions(struct asset_information *asset, int x, int y, int w_x, int w_y, int w, int h, int a, char str[64], bool asset_in_world) {
+void init_asset_dimensions(struct asset_information *asset, int x, int y, int w_x, int w_y, int w, int h, int a, char str[64], bool asset_in_world, int speed) {
 	asset->x = x;
 	asset->y = y;
 	asset->world_x = w_x;
@@ -16,6 +16,7 @@ void init_asset_dimensions(struct asset_information *asset, int x, int y, int w_
 	asset->angle = a;
 	strncpy(asset->description, str, 63);
 	asset->does_exist = asset_in_world;
+	asset->speed = speed;
 }
 
 void init_text_information(struct text_information *text_data, char filepath[256], char text_string[256], SDL_Colour colour, int font, int x, int y, int w, int h) {
@@ -66,8 +67,8 @@ void change_asset_world_position(struct asset_information *asset, int delta_x, i
 }
 
 void change_asset_position(struct asset_information *asset, int delta_x, int delta_y) {
-	asset->x += delta_x;
-	asset->y += delta_y;
+	asset->world_x += delta_x;
+	asset->world_y += delta_y;
 }
 
 void draw_texture(struct top_level_window *game_app, struct asset_information *asset) {

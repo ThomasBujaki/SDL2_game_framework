@@ -2,25 +2,25 @@
 
 // todo change this to move the world
 // TODO: This should really be in a different file purely for world state
-void update_player_location_user_input(struct world_state *state, struct events_data *user_input, int magnitude) {
+void update_player_location_user_input(struct world_state *state, struct events_data *user_input, struct asset_information *player_asset) {
 	if (user_input->keyboard_events[up_key] == true) {
-		state->player_position.y -= magnitude;
-		state->world_offset_y = magnitude;
+		state->player_position.y -= player_asset->speed;
+		state->world_offset_y = player_asset->speed;
 	}
 	if (user_input->keyboard_events[down_key] == true) {
-		state->player_position.y += magnitude;
-		state->world_offset_y = -magnitude;
+		state->player_position.y += player_asset->speed;
+		state->world_offset_y = -player_asset->speed;
 	}
 	if (user_input->keyboard_events[up_key] == false && user_input->keyboard_events[down_key] == false) {
 		state->world_offset_y = 0;
 	}
 	if (user_input->keyboard_events[left_key] == true) {
-		state->player_position.x -= magnitude;
-		state->world_offset_x = magnitude;
+		state->player_position.x -= player_asset->speed;
+		state->world_offset_x = player_asset->speed;
 	}
 	if (user_input->keyboard_events[right_key] == true) {
-		state->player_position.x += magnitude;
-		state->world_offset_x = -magnitude;
+		state->player_position.x += player_asset->speed;
+		state->world_offset_x = -player_asset->speed;
 	}
 	if (user_input->keyboard_events[left_key] == false && user_input->keyboard_events[right_key] == false) {
 		state->world_offset_x = 0;

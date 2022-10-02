@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
 
 	struct asset_information player_asset = {};
 	asset_list[asset_num] = &player_asset;
-	init_asset_dimensions(&player_asset, 0, 0, 0, 0, 50, 50, 0, "player\0", true);
+	init_asset_dimensions(&player_asset, 0, 0, 0, 0, 50, 50, 0, "player\0", true, 5);
 	player_asset.x = game_app.window_width / 2 - player_asset.width / 2;  // put player in the center of the screen
 	player_asset.y = game_app.window_height / 2 - player_asset.height / 2;
 	player_asset.world_x = player_asset.x;
@@ -118,36 +118,36 @@ int main(int argc, char *argv[]) {
 
 	struct asset_information tree_asset = {};
 	asset_list[asset_num] = &tree_asset;
-	init_asset_dimensions(&tree_asset, 0, 0, 0, 0, 20, 20, 0, "tree\0", true);
+	init_asset_dimensions(&tree_asset, 0, 0, 0, 0, 20, 20, 0, "tree\0", true, 5);
 	asset_num++;
 	tree_asset.texture = load_texture(&game_app, "Texture_assets/tree.png");
 
 	struct asset_information portal_asset = {};
 	asset_list[asset_num] = &portal_asset;
-	init_asset_dimensions(&portal_asset, 1000, 250, 1000, 250, 100, 100, 0, "portal\0", true);
+	init_asset_dimensions(&portal_asset, 1000, 250, 1000, 250, 100, 100, 0, "portal\0", true, 0);
 	asset_num++;
 	portal_asset.texture = load_texture(&game_app, "Texture_assets/portal.png");
 
 	struct asset_information alien_asset[64620] = {};  // 64620 is the triangle number of 360
 	asset_list[asset_num] = &alien_asset[0];
-	init_asset_dimensions(&alien_asset[0], portal_asset.x, portal_asset.y, portal_asset.world_x, portal_asset.world_y, 20, 20, 0, "alien\0", true);
+	init_asset_dimensions(&alien_asset[0], portal_asset.world_x, portal_asset.world_y, portal_asset.world_x, portal_asset.world_y, 20, 20, 0, "alien\0", true, 4);
 	asset_num++;
 	alien_asset[0].texture = load_texture(&game_app, "Texture_assets/alien.png");
 	for (j = 1; j < 64620; j++) {
 		asset_list[asset_num] = &alien_asset[j];
-		init_asset_dimensions(&alien_asset[j], portal_asset.x, portal_asset.y, portal_asset.world_x, portal_asset.world_y, 20, 20, 0, "alien\0", false);
+		init_asset_dimensions(&alien_asset[j], portal_asset.world_x, portal_asset.world_y, portal_asset.world_x + portal_asset.width / 2, portal_asset.world_y + portal_asset.height / 2, 20, 20, 0, "alien\0", false, 4);
 		asset_num++;
 		alien_asset[j].texture = alien_asset[0].texture;
 	}
 
 	struct asset_information crosshair_asset = {};
 	// asset_list[asset_num] = &crosshair_asset;
-	init_asset_dimensions(&crosshair_asset, 0, 0, 0, 0, 20, 20, 0, "", true);
+	init_asset_dimensions(&crosshair_asset, 0, 0, 0, 0, 20, 20, 0, "", true, 0);
 	// asset_num++;
 	crosshair_asset.texture = load_texture(&game_app, "Texture_assets/crosshair.png");
 
-	struct asset_information on_screen = {};
-	init_asset_dimensions(&on_screen, 0, 0, 0, 0, game_app.window_width, game_app.window_height, 0, "", true);
+	struct asset_information on_screen = {};  // I know i probaby should have made a new struct for this
+	init_asset_dimensions(&on_screen, 0, 0, 0, 0, game_app.window_width, game_app.window_height, 0, "", true, 0);
 
 	assets_of_world.grass_tile = load_texture(&game_app, "Texture_assets/grass.png");
 
@@ -203,7 +203,7 @@ int main(int argc, char *argv[]) {
 		set_asset_position(&crosshair_asset, user_input.mouse.x - crosshair_asset.width / 2, user_input.mouse.y - crosshair_asset.height / 2);
 
 		change_angle(&player_asset, &user_input, 10);
-		update_player_location_user_input(&state_of_world, &user_input, 5);
+		update_player_location_user_input(&state_of_world, &user_input, &player_asset);
 		update_asset_size(&player_asset, &user_input);
 		change_asset_world_position(&on_screen, state_of_world.world_offset_x, state_of_world.world_offset_y);
 		draw_world(&game_app, &state_of_world, &assets_of_world);
@@ -214,16 +214,20 @@ int main(int argc, char *argv[]) {
 		change_asset_world_position(&on_screen, state_of_world.world_offset_x, state_of_world.world_offset_y);
 
 		for (j = 0; j < asset_num; j++) {
-			if (asset_list[j]->does_exist == true) {
+			if (asset_list[j]->does_exist == true) {  // if the assets are actually in the world somewhere
 				if (j != 0) {
 					change_asset_world_position(asset_list[j], state_of_world.world_offset_x, state_of_world.world_offset_y);
 				}
 				// do updates of asset
-				if (alien_asset[j].does_exist == true) {
+				if (alien_asset[j].does_exist == true) {  // technically fine but not great as alien assets are a subset of asset lists
 					aliens_alive++;
+
+					move_aliens(asset_num, asset_list, &alien_asset[j], &player_asset);
 				}
+
 				if (collision_detection_with_screen(asset_list[j], &on_screen)) {
 					asset_list[j]->is_drawn = true;
+
 				} else {
 					asset_list[j]->is_drawn = false;
 				}
@@ -249,7 +253,6 @@ int main(int argc, char *argv[]) {
 				}
 			}
 		}
-		printf("TREE screen: %d %d\n Tree world: %d %d\n", tree_asset.x, tree_asset.y, tree_asset.world_x, tree_asset.world_y);
 		draw_texture(&game_app, &player_asset);
 
 		sprintf(alien_count.text, "Aliens: %d", aliens_alive);
@@ -271,6 +274,8 @@ int main(int argc, char *argv[]) {
 			alien_spawn++;
 			for (a = aliens_alive; a < alien_spawn + aliens_alive; a++) {
 				alien_asset[a].does_exist = true;
+				alien_asset[a].world_x = portal_asset.world_x + portal_asset.width / 2;
+				alien_asset[a].world_y = portal_asset.world_y + portal_asset.height / 2;
 			}
 		} else {
 			sprintf(ten_sec_timer.text, "%ld", ten_second_timekeeping.tv_sec + 10 - frames_data.prev_time.tv_sec);
