@@ -10,20 +10,43 @@ void load_sound_effects(struct audio_assets *audio, char filepath[128]) {
 	audio->sound_effects[0] = Mix_LoadWAV(filepath);
 }
 
-void load_music(struct audio_assets *audio, char filename[128]) {
-	if (audio->music != NULL) {
+void load_music(struct audio_assets *audio, char filename[128], int track) {
+	if (audio->music[track] != NULL) {
 		Mix_HaltMusic();
-		Mix_FreeMusic(audio->music);
-		audio->music = NULL;
+		Mix_FreeMusic(audio->music[track]);
+		audio->music[track] = NULL;
 	}
 
-	audio->music = Mix_LoadMUS(filename);
+	audio->music[track] = Mix_LoadMUS(filename);
 }
 
 void init_audio(struct audio_assets *audio) {
-	// load_music(audio, "Audio_assets/MUSIC.ogg");
+	int track = 0;
+	load_music(audio, "Audio_assets/Atmosphere_1.ogg", track);
+	track++;
+	load_music(audio, "Audio_assets/Atmo_2.ogg", track);
+	track++;
+	load_music(audio, "Audio_assets/Atmo_3.ogg", track);
+	track++;
+	load_music(audio, "Audio_assets/Atmo_4.ogg", track);
+	track++;
+	load_music(audio, "Audio_assets/Atmo_5.ogg", track);
+	track++;
+	load_music(audio, "Audio_assets/bare_atmo.ogg", track);
+	track++;
+	load_music(audio, "Audio_assets/Dissonant.ogg", track);
+	track++;
+	load_music(audio, "Audio_assets/fast_dissonant.ogg", track);
+	track++;
+	load_music(audio, "Audio_assets/fast_pattern.ogg", track);
+	track++;
+	load_music(audio, "Audio_assets/medium_atmo.ogg", track);
 
 	load_sound_effects(audio, "Audio_assets/BEEP.ogg");
+}
+
+void change_music(struct audio_assets *audio, char filename[128], int track) {
+	load_music(audio, filename, track);
 }
 
 void play_music(Mix_Music *music, int loop) {

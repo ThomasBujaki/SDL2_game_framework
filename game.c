@@ -87,6 +87,7 @@ int main(int argc, char *argv[]) {
 	struct audio_assets audio = {};
 	int attack_animation_frames = 0, bullet_number = 0;
 	int l;
+	int track = 0;
 	bool have_shot = false;
 	// FPS
 	// struct timespec tstart = {0, 0}, tend = {0, 0};
@@ -133,7 +134,7 @@ int main(int argc, char *argv[]) {
 
 	struct asset_information alien_asset[64620] = {};  // 64620 is the triangle number of 360
 	asset_list[asset_num] = &alien_asset[0];
-	init_asset_dimensions(&alien_asset[0], portal_asset.world_x, portal_asset.world_y, portal_asset.world_x, portal_asset.world_y, 20, 20, 0, "alien\0", true, 4, 1);
+	init_asset_dimensions(&alien_asset[0], portal_asset.world_x, portal_asset.world_y, portal_asset.world_x, portal_asset.world_y, 20, 20, 0, "alien\0", true, 3, 1);
 	asset_num++;
 	alien_asset[0].texture = load_texture(&game_app, "Texture_assets/alien.png");
 	for (j = 1; j < 64620; j++) {
@@ -159,7 +160,7 @@ int main(int argc, char *argv[]) {
 	init_asset_dimensions(&bullet_asset[0], 100, 100, 100, 100, 10, 20, 0, "\0", false, 10, 1);
 	bullet_asset[0].texture = load_texture(&game_app, "Texture_assets/bullet.png");
 	for (j = 1; j < 100; j++) {
-		init_asset_dimensions(&bullet_asset[j], 100, 100, 100, 100, 5, 5, 0, "\0", false, 10, 1);
+		init_asset_dimensions(&bullet_asset[j], 100, 100, 100, 100, 10, 20, 0, "\0", false, 10, 1);
 		bullet_asset[j].texture = bullet_asset[0].texture;
 	}
 
@@ -199,7 +200,7 @@ int main(int argc, char *argv[]) {
 
 	init_audio(&audio);
 
-	// play_music(audio.music, -1);
+	play_music(audio.music[0], -1);
 
 	// main loop
 	struct timespec ten_second_timekeeping = {};
@@ -289,7 +290,7 @@ int main(int argc, char *argv[]) {
 			if (bullet_number > 99) {
 				bullet_number = 1;
 			}
-			for (l = 1; l < 99; l++) {
+			for (l = 0; l < 99; l++) {
 				//		printf("Exitsts: %x %x\n", bullet_asset[0], gun_asset);
 				if (bullet_asset[l].does_exist == true) {
 					if (collision_detection_with_screen(&bullet_asset[l], &on_screen) == true) {
@@ -317,6 +318,12 @@ int main(int argc, char *argv[]) {
 
 		// ten second timekeeping
 		if (frames_data.prev_time.tv_sec == ten_second_timekeeping.tv_sec + 10) {
+			play_music(audio.music[track], -1);
+			track++;
+			if (track > 9) {
+				track = 0;
+			}
+
 			clock_gettime(CLOCK_MONOTONIC, &ten_second_timekeeping);
 			alien_spawn++;
 			for (a = aliens_alive; a < alien_spawn + aliens_alive; a++) {
