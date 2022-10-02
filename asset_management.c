@@ -48,14 +48,6 @@ void update_asset_size(struct asset_information *asset, struct events_data *user
 	}
 }
 
-void change_angle(struct asset_information *asset, struct events_data *user_input, int magnitude) {
-	if (user_input->angle_change < 0) {	 // left?
-		asset->angle -= magnitude;
-	} else if (user_input->angle_change > 0) {	// right?
-		asset->angle += magnitude;
-	}
-}
-
 void set_asset_position(struct asset_information *asset, int x, int y) {
 	asset->x = x;
 	asset->y = y;

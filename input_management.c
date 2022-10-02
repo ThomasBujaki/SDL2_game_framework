@@ -22,6 +22,9 @@ void process_key(SDL_KeyboardEvent *event, int event_type, struct events_data *u
 			case 79:  // right
 				user_input->keyboard_events[right_key] = true;
 				break;
+			case 44:
+				user_input->keyboard_events[space_key] = true;
+				break;
 			default:
 				break;
 		}

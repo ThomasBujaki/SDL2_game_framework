@@ -11,7 +11,8 @@
 enum keyboard_inputs { up_key = 0,
 					   down_key = 1,
 					   left_key = 2,
-					   right_key = 3 };
+					   right_key = 3,
+					   space_key = 4 };
 
 enum controller_inputs { a_button = 0,
 						 b_button = 1,
@@ -25,7 +26,7 @@ struct mouse_event_data {
 
 // todo change these to use the SDL built in structs for these events
 struct events_data {
-	bool keyboard_events[4];  // up, down, left, right
+	bool keyboard_events[5];  // up, down, left, right, space
 	bool mouse_clicked;
 	bool mouse_scrolled;
 	int mouse_scrolled_magnitude;

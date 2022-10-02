@@ -85,8 +85,9 @@ int main(int argc, char *argv[]) {
 	struct top_level_window game_app = {};
 	struct events_data user_input = {};
 	struct audio_assets audio = {};
+	int attack_animation_frames = 0;
 	// FPS
-	struct timespec tstart = {0, 0}, tend = {0, 0};
+	// struct timespec tstart = {0, 0}, tend = {0, 0};
 
 	struct frame_time_info frames_data = {};
 	init_frame_rate_parameters(&frames_data);
@@ -108,7 +109,7 @@ int main(int argc, char *argv[]) {
 
 	struct asset_information player_asset = {};
 	asset_list[asset_num] = &player_asset;
-	init_asset_dimensions(&player_asset, 0, 0, 0, 0, 50, 50, 0, "player\0", true, 5);
+	init_asset_dimensions(&player_asset, 0, 0, 0, 0, 30, 30, 0, "player\0", true, 5);
 	player_asset.x = game_app.window_width / 2 - player_asset.width / 2;  // put player in the center of the screen
 	player_asset.y = game_app.window_height / 2 - player_asset.height / 2;
 	player_asset.world_x = player_asset.x;
@@ -141,13 +142,15 @@ int main(int argc, char *argv[]) {
 	}
 
 	struct asset_information crosshair_asset = {};
-	// asset_list[asset_num] = &crosshair_asset;
-	init_asset_dimensions(&crosshair_asset, 0, 0, 0, 0, 20, 20, 0, "", true, 0);
-	// asset_num++;
+	init_asset_dimensions(&crosshair_asset, 0, 0, 0, 0, 20, 20, 0, "\0", true, 0);
 	crosshair_asset.texture = load_texture(&game_app, "Texture_assets/crosshair.png");
 
+	struct asset_information sword_asset = {};
+	init_asset_dimensions(&sword_asset, 100, 100, 100, 100, 10, 20, 0, "\0", true, 0);
+	sword_asset.texture = load_texture(&game_app, "Texture_assets/sword.png");
+
 	struct asset_information on_screen = {};  // I know i probaby should have made a new struct for this
-	init_asset_dimensions(&on_screen, 0, 0, 0, 0, game_app.window_width, game_app.window_height, 0, "", true, 0);
+	init_asset_dimensions(&on_screen, 0, 0, 0, 0, game_app.window_width, game_app.window_height, 0, "\0", true, 0);
 
 	assets_of_world.grass_tile = load_texture(&game_app, "Texture_assets/grass.png");
 
@@ -190,7 +193,7 @@ int main(int argc, char *argv[]) {
 	ten_second_timekeeping = frames_data.prev_time;
 	int alien_spawn = 0, aliens_alive = 0;
 	while (1) {
-		clock_gettime(CLOCK_MONOTONIC, &tstart);
+		//		clock_gettime(CLOCK_MONOTONIC, &tstart);
 
 		prep_screen(&game_app);
 
@@ -202,7 +205,7 @@ int main(int argc, char *argv[]) {
 		}
 		set_asset_position(&crosshair_asset, user_input.mouse.x - crosshair_asset.width / 2, user_input.mouse.y - crosshair_asset.height / 2);
 
-		change_angle(&player_asset, &user_input, 10);
+		change_angle_to_mouse_dir(&player_asset, &user_input, &crosshair_asset);
 		update_player_location_user_input(&state_of_world, &user_input, &player_asset);
 		update_asset_size(&player_asset, &user_input);
 		change_asset_world_position(&on_screen, state_of_world.world_offset_x, state_of_world.world_offset_y);
@@ -221,7 +224,6 @@ int main(int argc, char *argv[]) {
 				// do updates of asset
 				if (alien_asset[j].does_exist == true) {  // technically fine but not great as alien assets are a subset of asset lists
 					aliens_alive++;
-
 					move_aliens(asset_num, asset_list, &alien_asset[j], &player_asset);
 				}
 
@@ -243,6 +245,7 @@ int main(int argc, char *argv[]) {
 					// draw_texture(&game_app, &portal_asset);
 					// draw_texture(&game_app, &tree_asset);
 					if (j != 0) {
+						did_player_kill_alien(asset_list[j], &sword_asset);
 						draw_texture(&game_app, asset_list[j]);	 // draw all textures except player
 					}
 					if (is_moused_over(asset_list[j], &user_input)) {
@@ -254,6 +257,7 @@ int main(int argc, char *argv[]) {
 			}
 		}
 		draw_texture(&game_app, &player_asset);
+		attack_animation_frames = do_attack_animation(&game_app, &player_asset, &user_input, &sword_asset, attack_animation_frames);
 
 		sprintf(alien_count.text, "Aliens: %d", aliens_alive);
 		sprintf(world_position.text, "pos: %d %d", player_asset.world_x, player_asset.world_y);
@@ -262,7 +266,6 @@ int main(int argc, char *argv[]) {
 		draw_text(&game_app, &health);
 		draw_text(&game_app, &frames_text);
 		draw_text(&game_app, &world_position);
-
 		draw_texture(&game_app, &crosshair_asset);
 
 		// sprintf(debug_output.text, "X:%d Y:%d", user_input.mouse.x, user_input.mouse.y);
@@ -280,6 +283,9 @@ int main(int argc, char *argv[]) {
 		} else {
 			sprintf(ten_sec_timer.text, "%ld", ten_second_timekeeping.tv_sec + 10 - frames_data.prev_time.tv_sec);
 		}
+		if (frames_data.prev_time.tv_sec > ten_second_timekeeping.tv_sec + 11) {
+			clock_gettime(CLOCK_MONOTONIC, &ten_second_timekeeping);
+		}
 		draw_text(&game_app, &ten_sec_timer);
 
 		// if (collision_detection(&player_asset, &alien_asset)) {
@@ -293,8 +299,8 @@ int main(int argc, char *argv[]) {
 		calculate_framerate(&frames_data);
 		frame_rate_cap(&frames_data);
 
-		clock_gettime(CLOCK_MONOTONIC, &tend);
-		// printf("some_long_computation took about %.5f seconds\n", ((double)tend.tv_sec + 1.0e-9 * tend.tv_nsec) - ((double)tstart.tv_sec + 1.0e-9 * tstart.tv_nsec));
+		// clock_gettime(CLOCK_MONOTONIC, &tend);
+		//  printf("some_long_computation took about %.5f seconds\n", ((double)tend.tv_sec + 1.0e-9 * tend.tv_nsec) - ((double)tstart.tv_sec + 1.0e-9 * tstart.tv_nsec));
 	}
 
 	return 0;

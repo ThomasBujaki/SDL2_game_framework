@@ -11,6 +11,7 @@
         "game_logic.h": "c",
         "common_include.h": "c",
         "__node_handle": "c",
-        "world.h": "c"
+        "world.h": "c",
+        "cstring": "c"
     }
 }

@@ -5,6 +5,8 @@
 
 #include "game_logic.h"
 
+#define PI 3.14159265358979323846
+
 struct alien_motion {
 	int x;
 	int y;
@@ -163,4 +165,55 @@ void move_aliens(int asset_num, struct asset_information *all_assets[asset_num],
 	//	int i;
 	// for
 	//	change_asset_position(asset, -2, 0);
+}
+
+float get_angle(int x1, int y1, int x2, int y2) {
+	float angle = -90 + atan2(y1 - y2, x1 - x2) * (180 / PI);
+	return angle >= 0 ? angle : 360 + angle;
+}
+
+int do_attack_animation(struct top_level_window *game_app, struct asset_information *player_asset, struct events_data *user_input, struct asset_information *sword_asset, int num_frames) {
+	// determine which way the player is facing (where the mouse is pointed)
+	if (user_input->keyboard_events[space_key] == true && sword_asset->is_drawn == false) {
+		sword_asset->is_drawn = true;
+		sword_asset->y = player_asset->y + player_asset->height;
+		sword_asset->is_drawn = true;
+	}
+	if (num_frames > 45) {
+		sword_asset->is_drawn = false;
+		user_input->keyboard_events[space_key] = false;
+		return -45;
+	}
+	if (sword_asset->is_drawn == true) {
+		sword_asset->angle = (int)get_angle(player_asset->x, player_asset->y, user_input->mouse.x, user_input->mouse.y);
+
+		sword_asset->y = player_asset->y + player_asset->height / 4 - sword_asset->height * cos((double)sword_asset->angle * PI / 180) - cos((double)sword_asset->angle * PI / 180) * (player_asset->height / 2);
+		sword_asset->x = player_asset->x + player_asset->width / 2 - sword_asset->width / 2 + sin((double)sword_asset->angle * PI / 180) * (player_asset->width);
+
+		draw_texture(game_app, sword_asset);
+		return num_frames + 1;
+	}
+
+	return 0;
+	// get the angle vs the player
+	// draw the sword asset
+}
+
+void change_angle_to_mouse_dir(struct asset_information *asset, struct events_data *user_input, struct asset_information *crosshair) {
+	float angle;
+	angle = get_angle(asset->x, asset->y, user_input->mouse.x - crosshair->width / 2, user_input->mouse.y - crosshair->height / 2);
+	asset->angle = angle;
+}
+
+void did_player_kill_alien(struct asset_information *asset, struct asset_information *sword_asset) {
+	if (sword_asset->is_drawn == true) {
+		if (collision_detection(asset, sword_asset) == true) {
+			if (strncmp("tree", asset->description, 4) && strncmp("portal", asset->description, 6)) {
+				//		asset->health -= sword_asset->health;
+				//		if (asset->health <= 0) {
+				asset->does_exist = false;
+				//		}
+			}
+		}
+	}
 }
