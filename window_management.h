@@ -8,10 +8,11 @@
 #include "common_include.h"
 #endif
 
-#include </opt/homebrew/include/SDL2/SDL_image.h>
-#include </opt/homebrew/include/SDL2/SDL_mixer.h>
-#include </opt/homebrew/include/SDL2/SDL_ttf.h>
 #include <stdbool.h>
+
+#include "SDL_image.h"
+#include "SDL_mixer.h"
+#include "SDL_ttf.h"
 
 struct top_level_window {
 	SDL_Renderer *renderer;

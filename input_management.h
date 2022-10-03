@@ -3,10 +3,11 @@
  * @author your name (you@domain.com)
  * @brief
  */
-#include </opt/homebrew/include/SDL2/SDL_events.h>
-#include </opt/homebrew/include/SDL2/SDL_gamecontroller.h>
 #include <stdbool.h>
 #include <stdio.h>
+
+#include "SDL_events.h"
+#include "SDL_gamecontroller.h"
 
 enum keyboard_inputs { up_key = 0,
 					   down_key = 1,

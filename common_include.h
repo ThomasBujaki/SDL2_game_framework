@@ -6,4 +6,4 @@
 
 #define included 1
 
-#include </opt/homebrew/include/SDL2/SDL.h>
+#include "SDL.h"

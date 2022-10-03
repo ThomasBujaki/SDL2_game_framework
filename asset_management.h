@@ -4,8 +4,7 @@
  * @brief
  */
 
-#include </opt/homebrew/include/SDL2/SDL_log.h>	 // could remove /opt/homebrew/include/SDL2/
-
+#include "SDL_log.h"  // could remove /opt/homebrew/include/SDL2/
 #include "audio_management.h"
 #include "graphics_management.h"
 #include "input_management.h"

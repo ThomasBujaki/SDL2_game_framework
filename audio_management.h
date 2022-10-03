@@ -3,7 +3,7 @@
  * @author Thomas Bujaki
  * @brief
  */
-#include </opt/homebrew/include/SDL2/SDL_mixer.h>
+#include "SDL_mixer.h"
 
 #define max_sound_effects 128
 #define max_music_tracks 8
