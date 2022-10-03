@@ -8,6 +8,7 @@
 
 void load_sound_effects(struct audio_assets *audio, char filepath[128]) {
 	audio->sound_effects[0] = Mix_LoadWAV(filepath);
+	audio->sound_effects[1] = Mix_LoadWAV(filepath);
 }
 
 void load_music(struct audio_assets *audio, char filename[128], int track) {
@@ -42,7 +43,10 @@ void init_audio(struct audio_assets *audio) {
 	track++;
 	load_music(audio, "Audio_assets/medium_atmo.ogg", track);
 
-	load_sound_effects(audio, "Audio_assets/BEEP.ogg");
+	audio->sound_effects[0] = Mix_LoadWAV("Audio_assets/sword.ogg");
+	audio->sound_effects[1] = Mix_LoadWAV("Audio_assets/shot.ogg");
+	// load_sound_effects(audio, "Audio_assets/sword.ogg");
+	// load_sound_effects(audio, "Audio_assets/shoot.ogg");
 }
 
 void change_music(struct audio_assets *audio, char filename[128], int track) {

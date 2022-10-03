@@ -245,10 +245,10 @@ int main(int argc, char *argv[]) {
 			user_input.keyboard_events[up_key] = false;
 		}
 
-		if (user_input.mouse_clicked == true) {
+		/*if (user_input.mouse_clicked == true) {
 			play_sound_effects(audio.sound_effects[0], 0);	// change the tailing 0 to change the channel that audio is played from
 			user_input.mouse_clicked = false;
-		}
+		}*/
 		set_asset_position(&crosshair_asset, user_input.mouse.x - crosshair_asset.width / 2, user_input.mouse.y - crosshair_asset.height / 2);
 
 		change_angle_to_mouse_dir(&player_asset, &user_input, &crosshair_asset);
@@ -313,8 +313,14 @@ int main(int argc, char *argv[]) {
 		}
 		draw_texture(&game_app, &player_asset);
 		if (user_input.keyboard_events[space_key] == true) {
+			if (attack_animation_frames == 0) {
+				play_sound_effects(audio.sound_effects[0], 0);
+			}
 			attack_animation_frames = do_attack_animation(&game_app, &player_asset, &user_input, &sword_asset, attack_animation_frames);
 		} else if (user_input.keyboard_events[shift_key] == true) {
+			if (attack_animation_frames == 0) {
+				play_sound_effects(audio.sound_effects[1], 0);
+			}
 			attack_animation_frames = do_gun_animation(&game_app, &player_asset, &user_input, attack_animation_frames, &gun_asset, &have_shot);
 			if (have_shot == false) {
 				bullet_number += shoot_bullets(&gun_asset, bullet_number, &bullet_asset[bullet_number], &have_shot);
@@ -345,7 +351,7 @@ int main(int argc, char *argv[]) {
 		draw_text(&game_app, &alien_count);
 		sprintf(health.text, "%d/100", player_asset.vitality);
 		draw_text(&game_app, &health);
-		draw_text(&game_app, &frames_text);
+		// draw_text(&game_app, &frames_text);
 		draw_texture(&game_app, &crosshair_asset);
 
 		// sprintf(debug_output.text, "X:%d Y:%d", user_input.mouse.x, user_input.mouse.y);
@@ -389,7 +395,7 @@ int main(int argc, char *argv[]) {
 		}
 		present_screen(&game_app);
 
-		sprintf(frames_text.text, "%d FPS", frames_data.current_framerate);
+		// sprintf(frames_text.text, "%d FPS", frames_data.current_framerate);
 
 		calculate_framerate(&frames_data);
 		frame_rate_cap(&frames_data);

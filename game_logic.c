@@ -195,7 +195,7 @@ int do_attack_animation(struct top_level_window *game_app, struct asset_informat
 	if (num_frames > 45) {
 		sword_asset->is_drawn = false;
 		user_input->keyboard_events[space_key] = false;
-		return -45;
+		return 0;
 	}
 	if (sword_asset->is_drawn == true) {
 		sword_asset->angle = (int)get_angle(player_asset->x, player_asset->y, user_input->mouse.x, user_input->mouse.y);
