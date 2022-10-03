@@ -7,20 +7,23 @@
 #include "input_management.h"
 
 void process_key(SDL_KeyboardEvent *event, int event_type, struct events_data *user_input) {
-	// printf("%d\n", event->keysym.scancode);
 	//  event type 1 is pressed, 2 is lifted
 	if (event_type == 1) {
 		switch (event->keysym.scancode) {
 			case 82:  // up
+			case 26:
 				user_input->keyboard_events[up_key] = true;
 				break;
 			case 81:  // down
+			case 22:
 				user_input->keyboard_events[down_key] = true;
 				break;
 			case 80:  // left
+			case 4:
 				user_input->keyboard_events[left_key] = true;
 				break;
 			case 79:  // right
+			case 7:
 				user_input->keyboard_events[right_key] = true;
 				break;
 			case 44:
@@ -35,15 +38,23 @@ void process_key(SDL_KeyboardEvent *event, int event_type, struct events_data *u
 	} else if (event_type == 2) {
 		switch (event->keysym.scancode) {
 			case 82:  // up
+			case 26:
+
 				user_input->keyboard_events[up_key] = false;
 				break;
 			case 81:  // down
+			case 22:
+
 				user_input->keyboard_events[down_key] = false;
 				break;
 			case 80:  // left
+			case 4:
+
 				user_input->keyboard_events[left_key] = false;
 				break;
 			case 79:  // right
+			case 7:
+
 				user_input->keyboard_events[right_key] = false;
 				break;
 			default:

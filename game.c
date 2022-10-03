@@ -81,6 +81,7 @@ void frame_rate_cap(struct frame_time_info *frames_data) {
 	}
 }
 
+// todo: make sword sound, make gun sound
 int main(int argc, char *argv[]) {
 	struct top_level_window game_app = {};
 	struct events_data user_input = {};
@@ -112,19 +113,37 @@ int main(int argc, char *argv[]) {
 
 	struct asset_information player_asset = {};
 	asset_list[asset_num] = &player_asset;
-	init_asset_dimensions(&player_asset, 0, 0, 0, 0, 30, 30, 0, "player\0", true, 5, 15);
+	init_asset_dimensions(&player_asset, 0, 0, 0, 0, 30, 30, 0, "player\0", true, 5, 100);
 	player_asset.x = game_app.window_width / 2 - player_asset.width / 2;  // put player in the center of the screen
 	player_asset.y = game_app.window_height / 2 - player_asset.height / 2;
 	player_asset.world_x = player_asset.x;
 	player_asset.world_y = player_asset.y;
 	asset_num++;
-	player_asset.texture = load_texture(&game_app, "Texture_assets/player.png");
+	player_asset.texture = load_texture(&game_app, "Texture_assets/player_new.png");
 
-	struct asset_information tree_asset = {};
-	asset_list[asset_num] = &tree_asset;
-	init_asset_dimensions(&tree_asset, 0, 0, 0, 0, 20, 20, 0, "tree\0", true, 5, 5);
+	struct asset_information tree_asset[200] = {};
+	asset_list[asset_num] = &tree_asset[0];
+	init_asset_dimensions(&tree_asset[0], 0, 0, rand() % 4000 - 1500, rand() % 4000 - 2000, 40, 40, 0, "\0", true, 0, 10);
 	asset_num++;
-	tree_asset.texture = load_texture(&game_app, "Texture_assets/tree.png");
+	tree_asset[0].texture = load_texture(&game_app, "Texture_assets/tree.png");
+	for (j = 1; j < 200; j++) {
+		init_asset_dimensions(&tree_asset[j], 0, 0, rand() % 4000 - 1500, rand() % 3000 - 1500, 40, 40, 0, "\0", true, 0, 10);
+		asset_list[asset_num] = &tree_asset[j];
+		asset_num++;
+		tree_asset[j].texture = tree_asset[0].texture;
+	}
+
+	struct asset_information powerup[4] = {};
+	asset_list[asset_num] = &powerup[0];
+	init_asset_dimensions(&powerup[0], 100, 100, -1300, -1300, 200, 200, 0, "\0", true, 10, 1);
+	asset_num++;
+	powerup[0].texture = load_texture(&game_app, "Texture_assets/powerup.png");
+	for (j = 1; j < 2; j++) {
+		init_asset_dimensions(&powerup[j], 100, 100, 1500, 1500, 200, 200, 0, "\0", true, 10, 1);
+		asset_list[asset_num] = &powerup[j];
+		asset_num++;
+		powerup[j].texture = powerup[0].texture;
+	}
 
 	struct asset_information portal_asset = {};
 	asset_list[asset_num] = &portal_asset;
@@ -132,12 +151,12 @@ int main(int argc, char *argv[]) {
 	asset_num++;
 	portal_asset.texture = load_texture(&game_app, "Texture_assets/portal.png");
 
-	struct asset_information alien_asset[64620] = {};  // 64620 is the triangle number of 360
+	struct asset_information alien_asset[5000] = {};  // 64620 is the triangle number of 360
 	asset_list[asset_num] = &alien_asset[0];
 	init_asset_dimensions(&alien_asset[0], portal_asset.world_x, portal_asset.world_y, portal_asset.world_x, portal_asset.world_y, 20, 20, 0, "alien\0", true, 3, 1);
 	asset_num++;
-	alien_asset[0].texture = load_texture(&game_app, "Texture_assets/alien.png");
-	for (j = 1; j < 64620; j++) {
+	alien_asset[0].texture = load_texture(&game_app, "Texture_assets/alien_new.png");
+	for (j = 1; j < 5000; j++) {
 		asset_list[asset_num] = &alien_asset[j];
 		init_asset_dimensions(&alien_asset[j], portal_asset.world_x, portal_asset.world_y, portal_asset.world_x + portal_asset.width / 2, portal_asset.world_y + portal_asset.height / 2, 20, 20, 0, "alien\0", false, 4, 1);
 		asset_num++;
@@ -153,7 +172,7 @@ int main(int argc, char *argv[]) {
 	sword_asset.texture = load_texture(&game_app, "Texture_assets/sword.png");
 
 	struct asset_information gun_asset = {};
-	init_asset_dimensions(&gun_asset, 100, 100, 100, 100, 10, 20, 0, "GUN\0", true, 0, 1);
+	init_asset_dimensions(&gun_asset, 100, 100, 100, 100, 10, 20, 0, "\0", true, 0, 1);
 	gun_asset.texture = load_texture(&game_app, "Texture_assets/gun.png");
 
 	struct asset_information bullet_asset[100] = {};
@@ -167,18 +186,17 @@ int main(int argc, char *argv[]) {
 	struct asset_information on_screen = {};  // I know i probaby should have made a new struct for this
 	init_asset_dimensions(&on_screen, 0, 0, 0, 0, game_app.window_width, game_app.window_height, 0, "\0", true, 0, 0);
 
-	assets_of_world.grass_tile = load_texture(&game_app, "Texture_assets/grass.png");
-
-	// todo, make asset for health monitoring
+	assets_of_world.grass_tile = load_texture(&game_app, "Texture_assets/grass_new.png");
 
 	// init text
 	SDL_Colour colour = {0, 0, 0};
 	SDL_Colour red = {255, 0, 0};
+	SDL_Colour white = {255, 255, 255};
 	struct text_information game_over = {};
 	init_text_information(&game_over, "times.ttf", "Game Over\0", colour, 128, 200, 500, 750, 100);
 
 	struct text_information health = {};
-	init_text_information(&health, "times.ttf", "15/15\0", red, 64, 0, 50, 50, 50);
+	init_text_information(&health, "times.ttf", "100/100\0", red, 64, 0, 50, 100, 50);
 
 	struct text_information frames_text = {};
 	init_text_information(&frames_text, "times.ttf", "\0", colour, 128, 900, 0, 300, 120);
@@ -187,16 +205,16 @@ int main(int argc, char *argv[]) {
 	init_text_information(&tooltip, "times.ttf", "\0", colour, 64, game_app.window_width / 2 - 100, 0, 200, 100);
 
 	struct text_information alien_count = {};
-	init_text_information(&alien_count, "times.ttf", "\0", colour, 64, 0, 150, 100, 50);
+	init_text_information(&alien_count, "times.ttf", "\0", colour, 64, 0, 175, 100, 50);
 
 	struct text_information ten_sec_timer = {};
-	init_text_information(&ten_sec_timer, "times.ttf", "\0", colour, 64, 0, 100, 50, 50);
+	init_text_information(&ten_sec_timer, "times.ttf", "\0", colour, 64, 0, 100, 75, 75);
 
 	struct text_information debug_output = {};
 	init_text_information(&debug_output, "times.ttf", "\0", colour, 64, 0, 100, 100, 50);
 
 	struct text_information world_position = {};
-	init_text_information(&world_position, "times.ttf", "\0", colour, 64, 100, 0, 100, 50);
+	init_text_information(&world_position, "times.ttf", "\0", white, 128, 100, 600, 800, 75);
 
 	init_audio(&audio);
 
@@ -206,13 +224,26 @@ int main(int argc, char *argv[]) {
 	struct timespec ten_second_timekeeping = {};
 	clock_gettime(CLOCK_MONOTONIC, &frames_data.prev_time);
 	ten_second_timekeeping = frames_data.prev_time;
-	int alien_spawn = 50, aliens_alive = 0;
+	int alien_spawn = 1, aliens_alive = 0;
 	while (1) {
 		//		clock_gettime(CLOCK_MONOTONIC, &tstart);
 
 		prep_screen(&game_app);
 
 		process_input(&user_input);
+
+		if (player_asset.world_x < -1225) {
+			user_input.keyboard_events[right_key] = false;
+		}
+		if (player_asset.world_y < -1300) {
+			user_input.keyboard_events[down_key] = false;
+		}
+		if (player_asset.world_x > 2750) {
+			user_input.keyboard_events[left_key] = false;
+		}
+		if (player_asset.world_y > 2700) {
+			user_input.keyboard_events[up_key] = false;
+		}
 
 		if (user_input.mouse_clicked == true) {
 			play_sound_effects(audio.sound_effects[0], 0);	// change the tailing 0 to change the channel that audio is played from
@@ -237,11 +268,12 @@ int main(int argc, char *argv[]) {
 					change_asset_world_position(asset_list[j], state_of_world.world_offset_x, state_of_world.world_offset_y);
 				}
 				// do updates of asset
-				if (alien_asset[j].does_exist == true) {  // technically fine but not great as alien assets are a subset of asset lists
-					aliens_alive++;
-					move_aliens(asset_num, asset_list, &alien_asset[j], &player_asset);
+				if (!strncmp(asset_list[j]->description, "alien", 5)) {
+					if (asset_list[j]->does_exist == true) {  // technically fine but not great as alien assets are a subset of asset lists
+						aliens_alive++;
+						move_aliens(asset_num, asset_list, asset_list[j], &player_asset);
+					}
 				}
-
 				if (collision_detection_with_screen(asset_list[j], &on_screen)) {
 					asset_list[j]->is_drawn = true;
 
@@ -253,8 +285,10 @@ int main(int argc, char *argv[]) {
 					if (j != 0) {
 						asset_list[j]->x = asset_list[j]->world_x;
 						asset_list[j]->y = asset_list[j]->world_y;
-
+						// printf("%s: %d %d\n", asset_list[j]->description, asset_list[j]->x, asset_list[j]->y);
 						change_asset_position(asset_list[j], state_of_world.world_offset_x, state_of_world.world_offset_y);
+						// printf("\t%d %d\n", state_of_world.world_offset_x, state_of_world.world_offset_y);
+						// printf("%s: %d %d\n", asset_list[j]->description, asset_list[j]->x, asset_list[j]->y);
 					}
 					// draw_texture(&game_app, &alien_asset[j]);
 					// draw_texture(&game_app, &portal_asset);
@@ -272,7 +306,6 @@ int main(int argc, char *argv[]) {
 					}
 					if (is_moused_over(asset_list[j], &user_input)) {
 						sprintf(tooltip.text, "%s", asset_list[j]->description);
-
 						draw_text(&game_app, &tooltip);
 					}
 				}
@@ -305,12 +338,14 @@ int main(int argc, char *argv[]) {
 		}
 
 		sprintf(alien_count.text, "Aliens: %d", aliens_alive);
-		sprintf(world_position.text, "pos: %d %d", player_asset.world_x, player_asset.world_y);
+		if (alien_spawn < 2) {
+			sprintf(world_position.text, "Break the powerups and destroy the portal! Lshift to shoot, space to meele.");
+			draw_text(&game_app, &world_position);
+		}
 		draw_text(&game_app, &alien_count);
-		sprintf(health.text, "%d/15", player_asset.vitality);
+		sprintf(health.text, "%d/100", player_asset.vitality);
 		draw_text(&game_app, &health);
 		draw_text(&game_app, &frames_text);
-		draw_text(&game_app, &world_position);
 		draw_texture(&game_app, &crosshair_asset);
 
 		// sprintf(debug_output.text, "X:%d Y:%d", user_input.mouse.x, user_input.mouse.y);
@@ -323,13 +358,15 @@ int main(int argc, char *argv[]) {
 			if (track > 9) {
 				track = 0;
 			}
-
 			clock_gettime(CLOCK_MONOTONIC, &ten_second_timekeeping);
-			alien_spawn++;
-			for (a = aliens_alive; a < alien_spawn + aliens_alive; a++) {
-				alien_asset[a].does_exist = true;
-				alien_asset[a].world_x = portal_asset.world_x + portal_asset.width / 2;
-				alien_asset[a].world_y = portal_asset.world_y + portal_asset.height / 2;
+
+			if (portal_asset.does_exist == true) {
+				alien_spawn += 10;
+				for (a = aliens_alive; a < alien_spawn + aliens_alive; a++) {
+					alien_asset[a].does_exist = true;
+					alien_asset[a].world_x = portal_asset.world_x + portal_asset.width / 2;
+					alien_asset[a].world_y = portal_asset.world_y + portal_asset.height / 2;
+				}
 			}
 		} else {
 			sprintf(ten_sec_timer.text, "%ld", ten_second_timekeeping.tv_sec + 10 - frames_data.prev_time.tv_sec);
@@ -344,7 +381,11 @@ int main(int argc, char *argv[]) {
 		// }
 		if (player_asset.vitality <= 0) {
 			draw_text(&game_app, &game_over);
+			player_asset.speed = 0;
 			//	break;
+		} else if (portal_asset.does_exist == false) {
+			sprintf(game_over.text, "You Win!");
+			draw_text(&game_app, &game_over);
 		}
 		present_screen(&game_app);
 
@@ -352,6 +393,14 @@ int main(int argc, char *argv[]) {
 
 		calculate_framerate(&frames_data);
 		frame_rate_cap(&frames_data);
+
+		if (powerup[0].does_exist == false && powerup[1].does_exist == false) {
+			player_asset.vitality = 10000;
+			for (j = 0; j < 100; j++) {
+				bullet_asset[j].vitality = 1000;
+			}
+			sword_asset.vitality = 1000;
+		}
 
 		// clock_gettime(CLOCK_MONOTONIC, &tend);
 		//  printf("some_long_computation took about %.5f seconds\n", ((double)tend.tv_sec + 1.0e-9 * tend.tv_nsec) - ((double)tstart.tv_sec + 1.0e-9 * tstart.tv_nsec));

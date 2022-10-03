@@ -27,12 +27,13 @@ void update_player_location_user_input(struct world_state *state, struct events_
 	}
 }
 
+// - 20 to 24
 void draw_tiles(struct top_level_window *game_app, struct world_state *state, struct world_assets *assets) {
 	// TODO: Load static world description from a file
 	// TODO: Performance: We don't actually need to render the ENTIRE world of tiles, we just need to render the tiles that appear within the "viewport"
-	int world_width = 100;
-	int world_height = 100;
-	for (int x = -world_width; x < world_width; x++) {
+	int world_width = 20;
+	int world_height = 20;
+	for (int x = -world_width + 5; x < world_width + 5; x++) {
 		for (int y = -world_height; y < world_height; y++) {
 			SDL_Rect tile_rectangle;
 			// need to make it so the ground doesn't move

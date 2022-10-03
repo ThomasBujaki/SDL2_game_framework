@@ -60,8 +60,10 @@ void change_asset_world_position(struct asset_information *asset, int delta_x, i
 }
 
 void change_asset_position(struct asset_information *asset, int delta_x, int delta_y) {
-	asset->world_x += delta_x;
-	asset->world_y += delta_y;
+	// asset->world_x += delta_x;
+	// asset->world_y += delta_y;
+	asset->x += delta_x;
+	asset->y += delta_y;
 }
 
 void draw_texture(struct top_level_window *game_app, struct asset_information *asset) {

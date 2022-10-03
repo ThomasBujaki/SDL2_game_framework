@@ -50,13 +50,13 @@ int determine_alien_movement() {
 }
 
 bool is_alien_in_vision_of_player(struct asset_information *asset, struct asset_information *player_asset) {
-	if ((asset->world_x + asset->width / 2 < player_asset->x + player_asset->width / 2 + 1000 && asset->world_y + asset->height / 2 < player_asset->y + player_asset->height / 2 + 1000) ||	 //
-		(asset->world_x + asset->width / 2 < player_asset->x + player_asset->width / 2 - 1000 && asset->world_y + asset->height / 2 < player_asset->y + player_asset->height / 2 + 1000) ||	 //
-		(asset->world_x + asset->width / 2 < player_asset->x + player_asset->width / 2 + 1000 && asset->world_y + asset->height / 2 < player_asset->y + player_asset->height / 2 - 1000) ||	 //
-		(asset->world_x + asset->width / 2 < player_asset->x + player_asset->width / 2 - 1000 && asset->world_y + asset->height / 2 < player_asset->y + player_asset->height / 2 - 1000)) {
-		return true;
-	}
-	return false;
+	// if ((asset->world_x + asset->width / 2 < player_asset->x + player_asset->width / 2 + 1000 && asset->world_y + asset->height / 2 < player_asset->y + player_asset->height / 2 + 1000) ||	 //
+	//	(asset->world_x + asset->width / 2 < player_asset->x + player_asset->width / 2 - 1000 && asset->world_y + asset->height / 2 < player_asset->y + player_asset->height / 2 + 1000) ||	 //
+	//	(asset->world_x + asset->width / 2 < player_asset->x + player_asset->width / 2 + 1000 && asset->world_y + asset->height / 2 < player_asset->y + player_asset->height / 2 - 1000) ||	 //
+	//	(asset->world_x + asset->width / 2 < player_asset->x + player_asset->width / 2 - 1000 && asset->world_y + asset->height / 2 < player_asset->y + player_asset->height / 2 - 1000)) {
+	return true;
+	//}
+	// return false;
 }
 
 void which_way_is_player(struct asset_information *asset, struct asset_information *player_asset, struct alien_motion *x_y_to_move) {
@@ -162,7 +162,7 @@ void move_aliens(int asset_num, struct asset_information *all_assets[asset_num],
 
 	if (currently_colliding(asset_num, all_assets, asset, &x_y_to_move)) {
 		// printf("%d %d\n", x_y_to_move.x, x_y_to_move.y);
-		change_asset_position(asset, x_y_to_move.x, x_y_to_move.y);
+		change_asset_world_position(asset, x_y_to_move.x, x_y_to_move.y);
 	} else {
 		if (is_alien_in_vision_of_player(asset, player_asset) == true) {
 			which_way_is_player(asset, player_asset, &x_y_to_move);
@@ -177,11 +177,7 @@ void move_aliens(int asset_num, struct asset_information *all_assets[asset_num],
 			x_y_to_move.y = 0;
 		}
 	}
-	change_asset_position(asset, x_y_to_move.x, x_y_to_move.y);
-
-	//	int i;
-	// for
-	//	change_asset_position(asset, -2, 0);
+	change_asset_world_position(asset, x_y_to_move.x, x_y_to_move.y);
 }
 
 float get_angle(int x1, int y1, int x2, int y2) {
@@ -247,7 +243,7 @@ int do_gun_animation(struct top_level_window *game_app, struct asset_information
 		gun_asset->is_drawn = false;
 		user_input->keyboard_events[shift_key] = false;
 		*have_shot = false;
-		return -45;
+		return 0;
 	}
 	if (gun_asset->is_drawn == true) {
 		gun_asset->angle = (int)get_angle(player_asset->x, player_asset->y, user_input->mouse.x, user_input->mouse.y);
